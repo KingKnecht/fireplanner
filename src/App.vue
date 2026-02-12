@@ -17,6 +17,8 @@ const newProjectData = ref<{ userId: string | null; startDate: Date } | null>(nu
 // Autosave
 const autosaveConfig = ref<AppConfig['autosave'] | null>(null)
 let autosaveTimer: NodeJS.Timeout | null = null
+const isDirty = ref(false)
+const currentFilePath = ref<string | null>(null)
 
 // Undo/Redo functionality
 const canUndo = ref(false)
@@ -54,6 +56,7 @@ onMounted(async () => {
   // @ts-ignore
   store.$subscribe(() => {
     updateHistoryState()
+    setDirty(true)
     scheduleAutosave()
   })
   
@@ -79,11 +82,24 @@ onUnmounted(() => {
 })
 
 // File operations
+function setDirty(dirty: boolean) {
+  isDirty.value = dirty
+  if (window.electron?.setTitle) {
+    const filename = currentFilePath.value 
+      ? currentFilePath.value.split('/').pop()?.replace('.fpj', '') || 'Untitled'
+      : 'Untitled'
+    const title = dirty ? `${filename}* - FirePlanner` : `${filename} - FirePlanner`
+    window.electron.setTitle(title)
+  }
+}
+
 function handleNew() {
   if (confirm('Create new plan? Any unsaved changes will be lost.')) {
     store.users = []
     store.projects = []
     selectedProject.value = null
+    currentFilePath.value = null
+    setDirty(false)
   }
 }
 
@@ -117,7 +133,11 @@ async function handleSave() {
       projects: serializedProjects
     })
     if (result.success) {
-      // Success - file saved
+      if (result.filePath) {
+        currentFilePath.value = result.filePath
+      }
+      setDirty(false)
+      console.log('[Save] File saved successfully')
     }
   } catch (error) {
     console.error('Failed to save:', error)
@@ -131,6 +151,10 @@ async function handleLoad() {
   try {
     const result = await window.electron.openFile()
     if (result.success && result.data) {
+      // Store the opened file path
+      if (result.filePath) {
+        currentFilePath.value = result.filePath
+      }
       // Load users and projects from file
       store.users = result.data.users || []
       store.projects = (result.data.projects || []).map((p: any) => ({
@@ -141,6 +165,7 @@ async function handleLoad() {
       }))
       // Clear selection after load
       selectedProject.value = null
+      setDirty(false)
       // Scroll to today after loading
       setTimeout(() => {
         plannerGridRef.value?.scrollToToday()
@@ -296,7 +321,13 @@ function handleMoveProject(projectId: string, newUserId: string | null, newStart
 <template>
   <div class="app">
     <header class="app-header">
-      <h1>FirePlanner</h1>
+      <div class="header-left">
+        <h1>FirePlanner</h1>
+        <span v-if="currentFilePath" class="current-file">
+          {{ currentFilePath.split('/').pop() }}
+        </span>
+        <span v-else class="current-file">Untitled</span>
+      </div>
       <div class="header-actions">
         <button @click="addNewUser" class="btn-header">Add User</button>
       </div>
@@ -352,9 +383,21 @@ function handleMoveProject(projectId: string, newUserId: string | null, newStart
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
 .app-header h1 {
   margin: 0;
   font-size: 24px;
+}
+
+.current-file {
+  font-size: 14px;
+  color: #aaa;
+  font-weight: normal;
 }
 
 .header-actions {

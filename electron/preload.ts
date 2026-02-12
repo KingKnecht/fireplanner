@@ -5,7 +5,7 @@ import { contextBridge, ipcRenderer } from 'electron'
 contextBridge.exposeInMainWorld('electron', {
   send: (channel: string, data: any) => {
     // whitelist channels
-    const validChannels = ['toMain']
+    const validChannels = ['toMain', 'window:setTitle']
     if (validChannels.includes(channel)) {
       ipcRenderer.send(channel, data)
     }
@@ -20,4 +20,5 @@ contextBridge.exposeInMainWorld('electron', {
   openFile: () => ipcRenderer.invoke('dialog:openFile'),
   getConfig: () => ipcRenderer.invoke('config:get'),
   autosave: (data: any) => ipcRenderer.invoke('autosave:save', data),
+  setTitle: (title: string) => ipcRenderer.send('window:setTitle', title),
 })

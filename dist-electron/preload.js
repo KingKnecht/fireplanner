@@ -6,7 +6,7 @@ const electron_1 = require("electron");
 electron_1.contextBridge.exposeInMainWorld('electron', {
     send: (channel, data) => {
         // whitelist channels
-        const validChannels = ['toMain'];
+        const validChannels = ['toMain', 'window:setTitle'];
         if (validChannels.includes(channel)) {
             electron_1.ipcRenderer.send(channel, data);
         }
@@ -21,4 +21,5 @@ electron_1.contextBridge.exposeInMainWorld('electron', {
     openFile: () => electron_1.ipcRenderer.invoke('dialog:openFile'),
     getConfig: () => electron_1.ipcRenderer.invoke('config:get'),
     autosave: (data) => electron_1.ipcRenderer.invoke('autosave:save', data),
+    setTitle: (title) => electron_1.ipcRenderer.send('window:setTitle', title),
 });

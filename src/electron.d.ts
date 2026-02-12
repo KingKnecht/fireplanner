@@ -15,6 +15,7 @@ export interface ElectronAPI {
   openFile: () => Promise<{ success: boolean; data?: any; filePath?: string }>
   getConfig: () => Promise<AppConfig>
   autosave: (data: any) => Promise<{ success: boolean; path?: string; error?: string }>
+  setTitle: (title: string) => void
 }
 
 declare global {

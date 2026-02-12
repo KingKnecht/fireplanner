@@ -48,6 +48,25 @@ function createWindow() {
     },
   })
 
+  // Prevent close if there are unsaved changes
+  win.on('close', (event) => {
+    const title = win.getTitle()
+    if (title.includes('*')) {
+      const choice = dialog.showMessageBoxSync(win, {
+        type: 'question',
+        buttons: ['Cancel', 'Discard Changes'],
+        title: 'Unsaved Changes',
+        message: 'You have unsaved changes. Are you sure you want to quit?',
+        defaultId: 0,
+        cancelId: 0
+      })
+      
+      if (choice === 0) {
+        event.preventDefault()
+      }
+    }
+  })
+
   if (isDev) {
     win.loadURL('http://localhost:5173')
     win.webContents.openDevTools()
@@ -88,6 +107,13 @@ ipcMain.handle('dialog:openFile', async () => {
 // Get config
 ipcMain.handle('config:get', async () => {
   return config
+})
+
+// Set window title
+ipcMain.on('window:setTitle', (_, title) => {
+  if (win) {
+    win.setTitle(title)
+  }
 })
 
 // Autosave handler
