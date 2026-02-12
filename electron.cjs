@@ -3,7 +3,6 @@ const { promises: fs } = require('fs')
 const path = require('path')
 
 const isDev = process.env.NODE_ENV === 'development'
-const devServerUrl = process.env.VITE_DEV_SERVER_URL || 'http://localhost:5173'
 
 let win = null
 
@@ -19,7 +18,7 @@ function createWindow() {
   })
 
   if (isDev) {
-    win.loadURL(devServerUrl)
+    win.loadURL('http://localhost:5173')
     win.webContents.openDevTools()
   } else {
     win.loadFile(path.join(__dirname, 'dist/index.html'))

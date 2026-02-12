@@ -6,9 +6,9 @@
   "main": "electron.cjs",
   "scripts": {
     "dev": "vite",
-    "build:electron": "tsc electron/preload.ts --outDir dist-electron --module esnext --target esnext --moduleResolution bundler --skipLibCheck",
-    "electron:dev": "npm run build:electron && vite & sleep 2 && NODE_ENV=development ELECTRON_DISABLE_SECURITY_WARNINGS=true VITE_DEV_SERVER_URL=http://localhost:5173 electron .",
-    "build": "vue-tsc -b && vite build && electron-builder",
+    "build:preload": "tsc electron/preload.ts --outDir dist-electron --module esnext --target esnext --moduleResolution bundler --skipLibCheck",
+    "electron:dev": "npm run build:preload && vite & sleep 2 && NODE_ENV=development ELECTRON_DISABLE_SECURITY_WARNINGS=true electron .",
+    "build": "npm run build:preload && vue-tsc -b && vite build && electron-builder",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -24,8 +24,6 @@
     "electron-builder": "^26.7.0",
     "typescript": "~5.9.3",
     "vite": "^7.3.1",
-    "vite-plugin-electron": "^0.29.0",
-    "vite-plugin-electron-renderer": "^0.14.6",
     "vue-tsc": "^3.1.5"
   },
   "build": {
@@ -36,7 +34,8 @@
     },
     "files": [
       "dist",
-      "dist-electron"
+      "dist-electron",
+      "electron.cjs"
     ],
     "mac": {
       "target": "dmg"
