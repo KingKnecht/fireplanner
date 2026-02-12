@@ -6,39 +6,9 @@ import { getWeekdaysBetween } from '../utils/dateUtils'
 import { calculateProjectEndDate } from '../utils/projectUtils'
 
 export const usePlannerStore = defineStore('planner', () => {
-  const users = ref<User[]>([
-    { id: nanoid(10), name: 'Sven', color: '#7BA3D1' },
-    { id: nanoid(10), name: 'Martin', color: '#E4A261' },
-    { id: nanoid(10), name: 'Marc', color: '#26b821' },
-    { id: nanoid(10), name: 'Roland', color: '#315fdd' }
-  ])
+  const users = ref<User[]>([])
 
-  const projects = ref<Project[]>([
-    {
-      id: nanoid(10),
-      name: 'Project-xyz',
-      userId: users.value[0].id,
-      startDate: new Date(2026, 0, 5),
-      endDate: new Date(2026, 0, 13),
-      durationDays: 5,
-      bufferPercent: 25,
-      capacityPercent: 100,
-      color: '#7BA3D1',
-      zIndex: 1
-    },
-    {
-      id: nanoid(10),
-      name: 'Proj-123',
-      userId: users.value[1].id,
-      startDate: new Date(2026, 0, 12),
-      endDate: new Date(2026, 0, 20),
-      durationDays: 5,
-      bufferPercent: 10,
-      capacityPercent: 100,
-      color: '#F4C261',
-      zIndex: 1
-    }
-  ])
+  const projects = ref<Project[]>([])
 
   const startDate = ref(new Date(2026, 0, 1)) // January 1, 2026
   const endDate = ref(new Date(2026, 11, 31)) // December 31, 2026

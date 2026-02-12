@@ -5,6 +5,7 @@ import ProjectEditorPanel from './components/ProjectEditorPanel.vue'
 import UserDialog from './components/UserDialog.vue'
 import { usePlannerStore } from './stores/plannerStore'
 import type { Project } from './types'
+import type { AppConfig } from './electron'
 
 const store = usePlannerStore()
 const isUserDialogOpen = ref(false)
@@ -12,6 +13,10 @@ const selectedProject = ref<Project | null>(null)
 const plannerGridRef = ref<InstanceType<typeof PlannerGrid> | null>(null)
 
 const newProjectData = ref<{ userId: string | null; startDate: Date } | null>(null)
+
+// Autosave
+const autosaveConfig = ref<AppConfig['autosave'] | null>(null)
+let autosaveTimer: NodeJS.Timeout | null = null
 
 // Undo/Redo functionality
 const canUndo = ref(false)
@@ -42,13 +47,14 @@ function handleRedo() {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   updateHistoryState()
   
   // Update history state whenever store changes
   // @ts-ignore
   store.$subscribe(() => {
     updateHistoryState()
+    scheduleAutosave()
   })
   
   // Listen for menu events from Electron
@@ -58,10 +64,18 @@ onMounted(() => {
     window.electron.receive('menu:open', handleLoad)
     window.electron.receive('menu:undo', handleUndo)
     window.electron.receive('menu:redo', handleRedo)
+    
+    // Load autosave config
+    const config = await window.electron.getConfig()
+    autosaveConfig.value = config.autosave
+    console.log('[Autosave] Config loaded:', config.autosave)
   }
 })
 
 onUnmounted(() => {
+  if (autosaveTimer) {
+    clearTimeout(autosaveTimer)
+  }
 })
 
 // File operations
@@ -135,6 +149,63 @@ async function handleLoad() {
   } catch (error) {
     console.error('Failed to load:', error)
     alert('Failed to load file: ' + error)
+  }
+}
+
+// Autosave functions
+function scheduleAutosave() {
+  if (!autosaveConfig.value?.enabled || !window.electron?.autosave) return
+  
+  console.log('[Autosave] Scheduling autosave in', autosaveConfig.value.intervalSeconds, 'seconds')
+  
+  // Clear existing timer
+  if (autosaveTimer) {
+    clearTimeout(autosaveTimer)
+  }
+  
+  // Schedule new autosave
+  autosaveTimer = setTimeout(() => {
+    performAutosave()
+  }, autosaveConfig.value.intervalSeconds * 1000)
+}
+
+async function performAutosave() {
+  if (!window.electron?.autosave) return
+  
+  console.log('[Autosave] Starting autosave...')
+  
+  try {
+    const serializedProjects = store.projects.map(p => ({
+      id: p.id,
+      name: p.name,
+      userId: p.userId,
+      startDate: p.startDate.toISOString(),
+      endDate: p.endDate.toISOString(),
+      durationDays: p.durationDays,
+      bufferPercent: p.bufferPercent,
+      capacityPercent: p.capacityPercent,
+      color: p.color,
+      zIndex: p.zIndex
+    }))
+    
+    const serializedUsers = store.users.map(u => ({
+      id: u.id,
+      name: u.name,
+      color: u.color
+    }))
+    
+    const result = await window.electron.autosave({
+      users: serializedUsers,
+      projects: serializedProjects
+    })
+    
+    if (result.success) {
+      console.log('[Autosave] Success:', result.path)
+    } else {
+      console.error('[Autosave] Failed:', result.error)
+    }
+  } catch (error) {
+    console.error('[Autosave] Error:', error)
   }
 }
 

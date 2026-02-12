@@ -19,4 +19,6 @@ electron_1.contextBridge.exposeInMainWorld('electron', {
     },
     saveFile: (data) => electron_1.ipcRenderer.invoke('dialog:saveFile', data),
     openFile: () => electron_1.ipcRenderer.invoke('dialog:openFile'),
+    getConfig: () => electron_1.ipcRenderer.invoke('config:get'),
+    autosave: (data) => electron_1.ipcRenderer.invoke('autosave:save', data),
 });

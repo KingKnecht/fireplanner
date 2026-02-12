@@ -5,6 +5,37 @@ const path = require('path')
 const isDev = process.env.NODE_ENV === 'development'
 
 let win = null
+let config = null
+
+// Load or create config
+async function loadConfig() {
+  // Default configuration with proper userData path
+  const defaultConfig = {
+    autosave: {
+      enabled: true,
+      intervalSeconds: 30,
+      folder: path.join(app.getPath('userData'), 'autosave')
+    }
+  }
+  
+  const configPath = path.join(__dirname, 'config.json')
+  try {
+    const data = await fs.readFile(configPath, 'utf-8')
+    const loadedConfig = JSON.parse(data)
+    
+    // If folder is empty, use default
+    if (!loadedConfig.autosave?.folder) {
+      loadedConfig.autosave.folder = defaultConfig.autosave.folder
+    }
+    
+    config = loadedConfig
+  } catch (error) {
+    // Config doesn't exist, create it with defaults
+    config = defaultConfig
+    await fs.writeFile(configPath, JSON.stringify(config, null, 2), 'utf-8')
+  }
+  return config
+}
 
 function createWindow() {
   win = new BrowserWindow({
@@ -29,8 +60,8 @@ function createWindow() {
 ipcMain.handle('dialog:saveFile', async (_, data) => {
   const result = await dialog.showSaveDialog({
     title: 'Save Planner',
-    defaultPath: 'planner.json',
-    filters: [{ name: 'JSON Files', extensions: ['json'] }]
+    defaultPath: 'planner.fpj',
+    filters: [{ name: 'FirePlanner Files', extensions: ['fpj'] }]
   })
 
   if (!result.canceled && result.filePath) {
@@ -43,7 +74,7 @@ ipcMain.handle('dialog:saveFile', async (_, data) => {
 ipcMain.handle('dialog:openFile', async () => {
   const result = await dialog.showOpenDialog({
     title: 'Open Planner',
-    filters: [{ name: 'JSON Files', extensions: ['json'] }],
+    filters: [{ name: 'FirePlanner Files', extensions: ['fpj'] }],
     properties: ['openFile']
   })
 
@@ -52,6 +83,52 @@ ipcMain.handle('dialog:openFile', async () => {
     return { success: true, data: JSON.parse(content), filePath: result.filePaths[0] }
   }
   return { success: false }
+})
+
+// Get config
+ipcMain.handle('config:get', async () => {
+  return config
+})
+
+// Autosave handler
+ipcMain.handle('autosave:save', async (_, data) => {
+  console.log('[Autosave] Handler triggered, folder:', config.autosave.folder)
+  try {
+    const autosaveFolder = config.autosave.folder
+    const archiveFolder = path.join(autosaveFolder, 'archive')
+    const autosavePath = path.join(autosaveFolder, 'autosave.fpj')
+    
+    console.log('[Autosave] Creating folder:', autosaveFolder)
+    // Create autosave folder if it doesn't exist
+    await fs.mkdir(autosaveFolder, { recursive: true })
+    
+    // Check if autosave.fpj already exists
+    try {
+      await fs.access(autosavePath)
+      // File exists, archive it
+      console.log('[Autosave] Archiving existing autosave.fpj')
+      await fs.mkdir(archiveFolder, { recursive: true })
+      
+      const now = new Date()
+      const timestamp = now.toISOString().replace(/[:.]/g, '-').split('.')[0]
+      const archiveName = `autosave_${timestamp}.fpj`
+      const archivePath = path.join(archiveFolder, archiveName)
+      
+      await fs.rename(autosavePath, archivePath)
+      console.log('[Autosave] Archived to:', archivePath)
+    } catch {
+      // File doesn't exist, no need to archive
+      console.log('[Autosave] No existing autosave to archive')
+    }
+    
+    // Write new autosave
+    await fs.writeFile(autosavePath, JSON.stringify(data, null, 2), 'utf-8')
+    console.log('[Autosave] Saved to:', autosavePath)
+    return { success: true, path: autosavePath }
+  } catch (error) {
+    console.error('[Autosave] Failed:', error)
+    return { success: false, error: error.message }
+  }
 })
 
 // Create application menu
@@ -129,7 +206,10 @@ function createMenu() {
   Menu.setApplicationMenu(menu)
 }
 
-app.on('ready', () => {
+app.on('ready', async () => {
+  // Load config
+  await loadConfig()
+  
   // Give Vite dev server time to start if in dev mode
   if (isDev) {
     setTimeout(() => {
