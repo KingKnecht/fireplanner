@@ -9,6 +9,7 @@ import type { Project } from './types'
 const store = usePlannerStore()
 const isUserDialogOpen = ref(false)
 const selectedProject = ref<Project | null>(null)
+const plannerGridRef = ref<InstanceType<typeof PlannerGrid> | null>(null)
 
 const newProjectData = ref<{ userId: string | null; startDate: Date } | null>(null)
 
@@ -68,14 +69,27 @@ async function handleSave() {
 
   try {
     // Serialize projects with dates as ISO strings
+    // Create plain objects to avoid Pinia reactivity proxy issues
     const serializedProjects = store.projects.map(p => ({
-      ...p,
+      id: p.id,
+      name: p.name,
+      userId: p.userId,
       startDate: p.startDate.toISOString(),
-      endDate: p.endDate.toISOString()
+      endDate: p.endDate.toISOString(),
+      durationDays: p.durationDays,
+      bufferPercent: p.bufferPercent,
+      color: p.color,
+      zIndex: p.zIndex
+    }))
+    
+    const serializedUsers = store.users.map(u => ({
+      id: u.id,
+      name: u.name,
+      color: u.color
     }))
     
     const result = await window.electron.saveFile({
-      users: store.users,
+      users: serializedUsers,
       projects: serializedProjects
     })
     if (result.success) {
@@ -102,6 +116,10 @@ async function handleLoad() {
       }))
       // Clear selection after load
       selectedProject.value = null
+      // Scroll to today after loading
+      setTimeout(() => {
+        plannerGridRef.value?.scrollToToday()
+      }, 100)
     }
   } catch (error) {
     console.error('Failed to load:', error)
@@ -204,6 +222,7 @@ function handleMoveProject(projectId: string, newUserId: string | null, newStart
 
     <main class="app-main">
       <PlannerGrid
+        ref="plannerGridRef"
         :users="store.users"
         :weekdays="store.weekdays"
         :get-projects-for-user="store.getProjectsForUser"

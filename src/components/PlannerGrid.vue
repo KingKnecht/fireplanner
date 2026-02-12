@@ -101,8 +101,7 @@ const dragOffsetX = ref(0)
 const dragOffsetY = ref(0)
 const plannerGridRef = ref<HTMLElement | null>(null)
 
-onMounted(() => {
-  // Scroll to today's date on mount
+function scrollToToday() {
   if (plannerGridRef.value && props.weekdays.length > 0) {
     const todayIndex = props.weekdays.findIndex(date => isToday(date))
     if (todayIndex !== -1) {
@@ -111,6 +110,15 @@ onMounted(() => {
       plannerGridRef.value.scrollTop = Math.max(0, scrollPosition)
     }
   }
+}
+
+onMounted(() => {
+  // Scroll to today's date on mount
+  scrollToToday()
+})
+
+defineExpose({
+  scrollToToday
 })
 
 function isFriday(date: Date): boolean {

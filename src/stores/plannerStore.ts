@@ -1,22 +1,23 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
+import { nanoid } from 'nanoid'
 import type { User, Project } from '../types'
 import { getWeekdaysBetween } from '../utils/dateUtils'
 import { calculateProjectEndDate } from '../utils/projectUtils'
 
 export const usePlannerStore = defineStore('planner', () => {
   const users = ref<User[]>([
-    { id: '1', name: 'Sven', color: '#7BA3D1' },
-    { id: '2', name: 'Martin', color: '#E4A261' },
-    { id: '3', name: 'Marc', color: '#26b821' },
-    { id: '4', name: 'Roland', color: '#315fdd' }
+    { id: nanoid(10), name: 'Sven', color: '#7BA3D1' },
+    { id: nanoid(10), name: 'Martin', color: '#E4A261' },
+    { id: nanoid(10), name: 'Marc', color: '#26b821' },
+    { id: nanoid(10), name: 'Roland', color: '#315fdd' }
   ])
 
   const projects = ref<Project[]>([
     {
-      id: '1',
+      id: nanoid(10),
       name: 'Project-xyz',
-      userId: '1',
+      userId: users.value[0].id,
       startDate: new Date(2026, 0, 5),
       endDate: new Date(2026, 0, 13),
       durationDays: 5,
@@ -25,9 +26,9 @@ export const usePlannerStore = defineStore('planner', () => {
       zIndex: 1
     },
     {
-      id: '2',
+      id: nanoid(10),
       name: 'Proj-123',
-      userId: '2',
+      userId: users.value[1].id,
       startDate: new Date(2026, 0, 12),
       endDate: new Date(2026, 0, 20),
       durationDays: 5,
@@ -46,7 +47,7 @@ export const usePlannerStore = defineStore('planner', () => {
 
   function addUser(name: string, color?: string) {
     const newUser: User = {
-      id: Date.now().toString(),
+      id: nanoid(10),
       name,
       color: color || `#${Math.floor(Math.random() * 16777215).toString(16)}`
     }
@@ -67,7 +68,7 @@ export const usePlannerStore = defineStore('planner', () => {
     
     const newProject: Project = {
       ...project,
-      id: Date.now().toString(),
+      id: nanoid(10),
       endDate,
       zIndex: project.zIndex ?? 1
     }
