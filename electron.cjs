@@ -1,45 +1,28 @@
-import { app, BrowserWindow, dialog, ipcMain, Menu } from 'electron'
-import { promises as fs } from 'node:fs'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
+const { app, BrowserWindow, dialog, ipcMain, Menu } = require('electron')
+const { promises: fs } = require('fs')
+const path = require('path')
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const isDev = process.env.NODE_ENV === 'development'
+const devServerUrl = process.env.VITE_DEV_SERVER_URL || 'http://localhost:5173'
 
-// The built directory structure
-//
-// ├─┬─┬ dist
-// │ │ └── index.html
-// │ │
-// │ ├─┬ dist-electron
-// │ │ ├── main.js
-// │ │ └── preload.js
-// │
-process.env.DIST = path.join(__dirname, '../dist')
-process.env.VITE_PUBLIC = app.isPackaged
-  ? process.env.DIST
-  : path.join(process.env.DIST, '../public')
-
-let win: BrowserWindow | null
+let win = null
 
 function createWindow() {
   win = new BrowserWindow({
     width: 1400,
     height: 900,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.mjs'),
+      preload: path.join(__dirname, 'dist-electron/preload.mjs'),
       nodeIntegration: false,
       contextIsolation: true,
     },
   })
 
-  if (process.env.VITE_DEV_SERVER_URL) {
-    win.loadURL(process.env.VITE_DEV_SERVER_URL)
-    // Try to open DevTools on startup
-    win.webContents.on('did-finish-load', () => {
-      win?.webContents.openDevTools()
-    })
+  if (isDev) {
+    win.loadURL(devServerUrl)
+    win.webContents.openDevTools()
   } else {
-    win.loadFile(path.join(process.env.DIST!, 'index.html'))
+    win.loadFile(path.join(__dirname, 'dist/index.html'))
   }
 }
 
@@ -74,7 +57,7 @@ ipcMain.handle('dialog:openFile', async () => {
 
 // Create application menu
 function createMenu() {
-  const template: Electron.MenuItemConstructorOptions[] = [
+  const template = [
     {
       label: 'File',
       submenu: [
@@ -139,9 +122,17 @@ function createMenu() {
   Menu.setApplicationMenu(menu)
 }
 
-app.whenReady().then(() => {
-  createMenu()
-  createWindow()
+app.on('ready', () => {
+  // Give Vite dev server time to start if in dev mode
+  if (isDev) {
+    setTimeout(() => {
+      createMenu()
+      createWindow()
+    }, 2000)
+  } else {
+    createMenu()
+    createWindow()
+  }
 })
 
 app.on('window-all-closed', () => {
@@ -152,9 +143,7 @@ app.on('window-all-closed', () => {
 })
 
 app.on('activate', () => {
-  // On macOS it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
-  if (BrowserWindow.getAllWindows().length === 0) {
+  if (win === null) {
     createWindow()
   }
 })

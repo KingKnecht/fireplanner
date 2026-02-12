@@ -13,15 +13,14 @@ function createWindow() {
     webPreferences: {
       preload: path.join(__dirname$1, "preload.mjs"),
       nodeIntegration: false,
-      contextIsolation: true,
-      devTools: true
+      contextIsolation: true
     }
-  });
-  win.webContents.on("did-finish-load", () => {
-    win?.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
   });
   if (process.env.VITE_DEV_SERVER_URL) {
     win.loadURL(process.env.VITE_DEV_SERVER_URL);
+    win.webContents.on("did-finish-load", () => {
+      win?.webContents.openDevTools();
+    });
   } else {
     win.loadFile(path.join(process.env.DIST, "index.html"));
   }

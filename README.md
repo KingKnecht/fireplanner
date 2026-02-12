@@ -53,14 +53,16 @@ npm install
 Start development server:
 
 ```bash
-npm run dev
+npm run electron:dev
 ```
 
 This will:
+- Compile the Electron preload script
 - Start the Vite dev server for hot module replacement
-- Build the Electron main process
-- Launch the Electron application window
+- Launch the Electron application window (after 2 second delay)
 - Open DevTools automatically
+
+**Note**: Use `npm run electron:dev` (not `npm run dev`) to ensure DevTools work properly. The app runs Vite and Electron as separate processes.
 
 ## Usage
 
