@@ -78,6 +78,7 @@ async function handleSave() {
       endDate: p.endDate.toISOString(),
       durationDays: p.durationDays,
       bufferPercent: p.bufferPercent,
+      capacityPercent: p.capacityPercent,
       color: p.color,
       zIndex: p.zIndex
     }))
@@ -112,7 +113,8 @@ async function handleLoad() {
       store.projects = (result.data.projects || []).map((p: any) => ({
         ...p,
         startDate: new Date(p.startDate),
-        endDate: new Date(p.endDate)
+        endDate: new Date(p.endDate),
+        capacityPercent: p.capacityPercent ?? 100
       }))
       // Clear selection after load
       selectedProject.value = null

@@ -22,6 +22,7 @@ export const usePlannerStore = defineStore('planner', () => {
       endDate: new Date(2026, 0, 13),
       durationDays: 5,
       bufferPercent: 25,
+      capacityPercent: 100,
       color: '#7BA3D1',
       zIndex: 1
     },
@@ -33,6 +34,7 @@ export const usePlannerStore = defineStore('planner', () => {
       endDate: new Date(2026, 0, 20),
       durationDays: 5,
       bufferPercent: 10,
+      capacityPercent: 100,
       color: '#F4C261',
       zIndex: 1
     }
@@ -63,7 +65,8 @@ export const usePlannerStore = defineStore('planner', () => {
     const endDate = calculateProjectEndDate(
       project.startDate,
       project.durationDays,
-      project.bufferPercent
+      project.bufferPercent,
+      project.capacityPercent
     )
     
     const newProject: Project = {
@@ -88,17 +91,19 @@ export const usePlannerStore = defineStore('planner', () => {
         startDate: updates.startDate ?? currentProject.startDate,
         durationDays: updates.durationDays ?? currentProject.durationDays,
         bufferPercent: updates.bufferPercent ?? currentProject.bufferPercent,
+        capacityPercent: updates.capacityPercent ?? currentProject.capacityPercent,
         color: updates.color ?? currentProject.color,
         zIndex: updates.zIndex !== undefined ? updates.zIndex : currentProject.zIndex,
         endDate: currentProject.endDate
       }
       
-      // Recalculate end date if duration, buffer, or start date changed
-      if (updates.startDate || updates.durationDays !== undefined || updates.bufferPercent !== undefined) {
+      // Recalculate end date if duration, buffer, capacity, or start date changed
+      if (updates.startDate || updates.durationDays !== undefined || updates.bufferPercent !== undefined || updates.capacityPercent !== undefined) {
         updatedProject.endDate = calculateProjectEndDate(
           updatedProject.startDate,
           updatedProject.durationDays,
-          updatedProject.bufferPercent
+          updatedProject.bufferPercent,
+          updatedProject.capacityPercent
         )
       }
       

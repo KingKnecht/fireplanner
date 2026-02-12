@@ -41,8 +41,10 @@ const blockStyle = computed<CSSProperties>(() => {
   }
 
   // Calculate height based on duration + buffer (supports half days)
+  // Adjusted for capacity: at 50% capacity, a 10-day project takes 20 calendar days
   const totalDuration = props.project.durationDays * (1 + props.project.bufferPercent / 100)
-  const roundedDuration = Math.ceil(totalDuration * 2) / 2
+  const adjustedDuration = totalDuration / (props.project.capacityPercent / 100)
+  const roundedDuration = Math.ceil(adjustedDuration * 2) / 2
   const height = roundedDuration
 
   return {
@@ -51,7 +53,7 @@ const blockStyle = computed<CSSProperties>(() => {
     backgroundColor: props.project.color,
     position: 'absolute',
     left: '2px',
-    right: '2px',
+    width: `calc(${props.project.capacityPercent}% - 4px)`,
     border: '2px solid rgba(0, 0, 0, 0.3)',
     borderRadius: '4px',
     padding: '8px',

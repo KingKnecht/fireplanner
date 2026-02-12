@@ -46,6 +46,16 @@
       </div>
 
       <div class="form-group">
+        <label>Capacity:</label>
+        <select v-model.number="form.capacityPercent">
+          <option :value="33">33%</option>
+          <option :value="50">50%</option>
+          <option :value="75">75%</option>
+          <option :value="100">100%</option>
+        </select>
+      </div>
+
+      <div class="form-group">
         <label>Start Date:</label>
         <DatePicker 
           v-model="form.startDate" 
@@ -118,6 +128,7 @@ const emit = defineEmits<{
     startDate: Date
     durationDays: number
     bufferPercent: number
+    capacityPercent: number
     color: string
     zIndex: number
   }]
@@ -127,6 +138,7 @@ const emit = defineEmits<{
     startDate: Date
     durationDays: number
     bufferPercent: number
+    capacityPercent: number
     color: string
     zIndex: number
   }>]
@@ -143,6 +155,7 @@ const form = ref({
   userId: null as string | null,
   durationDays: 1,
   bufferPercent: 0,
+  capacityPercent: 100,
   startDate: new Date() as Date | string,
   color: COLOR_PALETTE[0],
   zIndex: 1
@@ -153,14 +166,16 @@ const calculatedEndDate = computed(() => {
   return calculateProjectEndDate(
     new Date(form.value.startDate),
     form.value.durationDays,
-    form.value.bufferPercent
+    form.value.bufferPercent,
+    form.value.capacityPercent
   )
 })
 
 const totalDuration = computed(() => {
   const base = form.value.durationDays
   const withBuffer = base * (1 + form.value.bufferPercent / 100)
-  return Math.ceil(withBuffer * 2) / 2
+  const withCapacity = withBuffer / (form.value.capacityPercent / 100)
+  return Math.ceil(withCapacity * 2) / 2
 })
 
 // Watch selected project to populate form
@@ -172,6 +187,7 @@ watch(() => props.selectedProject, (project) => {
       userId: project.userId,
       durationDays: project.durationDays,
       bufferPercent: project.bufferPercent,
+      capacityPercent: project.capacityPercent,
       startDate: new Date(project.startDate),
       color: project.color,
       zIndex: project.zIndex
@@ -191,6 +207,7 @@ watch(() => props.newProjectData, (data) => {
       userId: data.userId,
       durationDays: 1,
       bufferPercent: 0,
+      capacityPercent: 100,
       startDate: new Date(data.startDate),
       color: COLOR_PALETTE[0],
       zIndex: 1
@@ -199,7 +216,7 @@ watch(() => props.newProjectData, (data) => {
 }, { immediate: true })
 
 // Watch other form fields for live updates on existing projects
-watch(() => [form.value.name, form.value.userId, form.value.durationDays, form.value.bufferPercent, form.value.startDate, form.value.color], () => {
+watch(() => [form.value.name, form.value.userId, form.value.durationDays, form.value.bufferPercent, form.value.capacityPercent, form.value.startDate, form.value.color], () => {
   if (!props.selectedProject || !form.value.startDate || isUpdatingFromProject.value) return
   
   const updates: Partial<{
@@ -208,6 +225,7 @@ watch(() => [form.value.name, form.value.userId, form.value.durationDays, form.v
     startDate: Date
     durationDays: number
     bufferPercent: number
+    capacityPercent: number
     color: string
   }> = {}
   
@@ -215,6 +233,7 @@ watch(() => [form.value.name, form.value.userId, form.value.durationDays, form.v
   if (form.value.userId !== props.selectedProject.userId) updates.userId = form.value.userId
   if (form.value.durationDays !== props.selectedProject.durationDays) updates.durationDays = form.value.durationDays
   if (form.value.bufferPercent !== props.selectedProject.bufferPercent) updates.bufferPercent = form.value.bufferPercent
+  if (form.value.capacityPercent !== props.selectedProject.capacityPercent) updates.capacityPercent = form.value.capacityPercent
   if (form.value.color !== props.selectedProject.color) updates.color = form.value.color
   
   const newStartDate = new Date(form.value.startDate)
@@ -236,6 +255,7 @@ function handleCreate() {
     startDate: new Date(form.value.startDate),
     durationDays: form.value.durationDays,
     bufferPercent: form.value.bufferPercent,
+    capacityPercent: form.value.capacityPercent,
     color: (form.value.color || COLOR_PALETTE[0]) as string,
     zIndex: form.value.zIndex
   })
@@ -259,6 +279,7 @@ function handleClear() {
     userId: null,
     durationDays: 1,
     bufferPercent: 0,
+    capacityPercent: 100,
     startDate: new Date(),
     color: COLOR_PALETTE[0],
     zIndex: 1

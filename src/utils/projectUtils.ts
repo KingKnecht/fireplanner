@@ -20,13 +20,17 @@ export const COLOR_PALETTE = [
 export function calculateProjectEndDate(
   startDate: Date,
   durationDays: number,
-  bufferPercent: number
+  bufferPercent: number,
+  capacityPercent: number = 100
 ): Date {
   // Calculate total duration with buffer
   const totalDuration = durationDays * (1 + bufferPercent / 100)
   
+  // Adjust for capacity (50% capacity = takes twice as long)
+  const adjustedDuration = totalDuration / (capacityPercent / 100)
+  
   // Round up to nearest half day
-  const roundedDuration = Math.ceil(totalDuration * 2) / 2
+  const roundedDuration = Math.ceil(adjustedDuration * 2) / 2
   
   // Calculate end date (weekdays only)
   const endDate = new Date(startDate)
