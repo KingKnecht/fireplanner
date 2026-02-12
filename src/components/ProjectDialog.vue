@@ -21,12 +21,22 @@
 
         <div class="form-group">
           <label>Start Date:</label>
-          <input v-model="form.startDate" type="date" required />
+          <DatePicker 
+            v-model="form.startDate" 
+            dateFormat="dd.mm.yy"
+            showIcon
+            :showOnFocus="false"
+          />
         </div>
 
         <div class="form-group">
           <label>End Date:</label>
-          <input v-model="form.endDate" type="date" required />
+          <DatePicker 
+            v-model="form.endDate" 
+            dateFormat="dd.mm.yy"
+            showIcon
+            :showOnFocus="false"
+          />
         </div>
 
         <div class="form-group">
@@ -52,6 +62,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import DatePicker from 'primevue/datepicker'
 import type { User, Project } from '../types'
 
 const props = defineProps<{
@@ -75,8 +86,8 @@ const emit = defineEmits<{
 const form = ref({
   name: '',
   userId: '',
-  startDate: '',
-  endDate: '',
+  startDate: null as Date | null,
+  endDate: null as Date | null,
   color: '#7BA3D1'
 })
 
@@ -85,16 +96,16 @@ watch(() => props.editingProject, (project) => {
     form.value = {
       name: project.name,
       userId: project.userId,
-      startDate: project.startDate.toISOString().split('T')[0] || '',
-      endDate: project.endDate.toISOString().split('T')[0] || '',
+      startDate: new Date(project.startDate),
+      endDate: new Date(project.endDate),
       color: project.color
     }
   } else {
     form.value = {
       name: '',
       userId: '',
-      startDate: '',
-      endDate: '',
+      startDate: null,
+      endDate: null,
       color: '#7BA3D1'
     }
   }
@@ -105,11 +116,13 @@ function closeDialog() {
 }
 
 function handleSubmit() {
+  if (!form.value.startDate || !form.value.endDate) return
+  
   emit('submit', {
     name: form.value.name,
     userId: form.value.userId,
-    startDate: new Date(form.value.startDate),
-    endDate: new Date(form.value.endDate),
+    startDate: form.value.startDate,
+    endDate: form.value.endDate,
     color: form.value.color
   })
   closeDialog()
@@ -222,5 +235,14 @@ function handleDelete() {
 
 .btn-delete:hover {
   background: #da190b;
+}
+
+/* PrimeVue DatePicker styling */
+:deep(.p-datepicker) {
+  width: 100%;
+}
+
+:deep(.p-datepicker input) {
+  width: 100%;
 }
 </style>

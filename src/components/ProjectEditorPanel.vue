@@ -47,12 +47,11 @@
 
       <div class="form-group">
         <label>Start Date:</label>
-        <input 
-          v-model="displayStartDate" 
-          type="text" 
-          placeholder="dd.mm.yyyy"
-          pattern="\d{2}\.\d{2}\.\d{4}"
-          title="Format: dd.mm.yyyy"
+        <DatePicker 
+          v-model="form.startDate" 
+          dateFormat="dd.mm.yy"
+          showIcon
+          :showOnFocus="false"
         />
       </div>
 
@@ -101,9 +100,10 @@
 
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
+import DatePicker from 'primevue/datepicker'
 import type { User, Project } from '../types'
 import { COLOR_PALETTE, calculateProjectEndDate } from '../utils/projectUtils'
-import { formatDate, toInputDate } from '../utils/dateUtils'
+import { formatDate } from '../utils/dateUtils'
 
 const props = defineProps<{
   users: User[]
@@ -143,31 +143,9 @@ const form = ref({
   userId: null as string | null,
   durationDays: 1,
   bufferPercent: 0,
-  startDate: toInputDate(new Date()),
+  startDate: new Date() as Date | string,
   color: COLOR_PALETTE[0],
   zIndex: 1
-})
-
-// Convert between dd.mm.yyyy display format and ISO format
-const displayStartDate = computed({
-  get() {
-    if (!form.value.startDate) return ''
-    const date = new Date(form.value.startDate)
-    return formatDate(date)
-  },
-  set(value: string) {
-    // Parse dd.mm.yyyy format
-    const parts = value.split('.')
-    if (parts.length === 3 && parts[0] && parts[1] && parts[2]) {
-      const day = parseInt(parts[0], 10)
-      const month = parseInt(parts[1], 10) - 1
-      const year = parseInt(parts[2], 10)
-      if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
-        const date = new Date(year, month, day)
-        form.value.startDate = toInputDate(date)
-      }
-    }
-  }
 })
 
 const calculatedEndDate = computed(() => {
@@ -194,7 +172,7 @@ watch(() => props.selectedProject, (project) => {
       userId: project.userId,
       durationDays: project.durationDays,
       bufferPercent: project.bufferPercent,
-      startDate: toInputDate(project.startDate),
+      startDate: new Date(project.startDate),
       color: project.color,
       zIndex: project.zIndex
     }
@@ -213,7 +191,7 @@ watch(() => props.newProjectData, (data) => {
       userId: data.userId,
       durationDays: 1,
       bufferPercent: 0,
-      startDate: toInputDate(data.startDate),
+      startDate: new Date(data.startDate),
       color: COLOR_PALETTE[0],
       zIndex: 1
     }
@@ -281,7 +259,7 @@ function handleClear() {
     userId: null,
     durationDays: 1,
     bufferPercent: 0,
-    startDate: toInputDate(new Date()),
+    startDate: new Date(),
     color: COLOR_PALETTE[0],
     zIndex: 1
   }
@@ -440,5 +418,14 @@ function handleClear() {
 
 .calculated-info p {
   margin: 4px 0;
+}
+
+/* PrimeVue DatePicker styling */
+:deep(.p-datepicker) {
+  width: 100%;
+}
+
+:deep(.p-datepicker input) {
+  width: 100%;
 }
 </style>
