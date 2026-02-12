@@ -190,6 +190,9 @@ function handleDrop(event: DragEvent, userId: string | null) {
     }
     
     emit('moveProject', project.id, userId, newStartDate)
+    
+    // Select the project in the editor after dropping
+    emit('editProject', project)
   }
 }
 </script>

@@ -3,7 +3,6 @@
        draggable="true"
        :style="blockStyle"
        @click="handleClick"
-       @dblclick.stop="handleEdit"
        @dragstart="handleDragStart"
        @dragend="handleDragEnd">
     <div class="project-name">{{ project.name }}</div>
@@ -68,7 +67,7 @@ const blockStyle = computed<CSSProperties>(() => {
 })
 
 function handleClick() {
-  // Click handler
+  emit('edit', props.project)
 }
 
 function handleEdit() {
