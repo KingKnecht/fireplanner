@@ -41,22 +41,7 @@ function handleRedo() {
   }
 }
 
-// Keyboard shortcuts
-function handleKeydown(e: KeyboardEvent) {
-  const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0
-  const ctrlKey = isMac ? e.metaKey : e.ctrlKey
-  
-  if (ctrlKey && !e.shiftKey && e.key === 'z') {
-    e.preventDefault()
-    handleUndo()
-  } else if ((ctrlKey && e.shiftKey && e.key === 'z') || (ctrlKey && e.key === 'y')) {
-    e.preventDefault()
-    handleRedo()
-  }
-}
-
 onMounted(() => {
-  window.addEventListener('keydown', handleKeydown)
   updateHistoryState()
   
   // Update history state whenever store changes
@@ -64,11 +49,65 @@ onMounted(() => {
   store.$subscribe(() => {
     updateHistoryState()
   })
+  
+  // Listen for menu events from Electron
+  if (window.electron) {
+    window.electron.receive('menu:save', handleSave)
+    window.electron.receive('menu:open', handleLoad)
+    window.electron.receive('menu:undo', handleUndo)
+    window.electron.receive('menu:redo', handleRedo)
+  }
 })
 
 onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeydown)
 })
+
+// File operations
+async function handleSave() {
+  if (!window.electron?.saveFile) return
+
+  try {
+    // Serialize projects with dates as ISO strings
+    const serializedProjects = store.projects.map(p => ({
+      ...p,
+      startDate: p.startDate.toISOString(),
+      endDate: p.endDate.toISOString()
+    }))
+    
+    const result = await window.electron.saveFile({
+      users: store.users,
+      projects: serializedProjects
+    })
+    if (result.success) {
+      // Success - file saved
+    }
+  } catch (error) {
+    console.error('Failed to save:', error)
+    alert('Failed to save file: ' + error)
+  }
+}
+
+async function handleLoad() {
+  if (!window.electron?.openFile) return
+
+  try {
+    const result = await window.electron.openFile()
+    if (result.success && result.data) {
+      // Load users and projects from file
+      store.users = result.data.users || []
+      store.projects = (result.data.projects || []).map((p: any) => ({
+        ...p,
+        startDate: new Date(p.startDate),
+        endDate: new Date(p.endDate)
+      }))
+      // Clear selection after load
+      selectedProject.value = null
+    }
+  } catch (error) {
+    console.error('Failed to load:', error)
+    alert('Failed to load file: ' + error)
+  }
+}
 
 function handleCreateProject(userId: string | null, startDate: Date) {
   selectedProject.value = null
@@ -159,22 +198,6 @@ function handleMoveProject(projectId: string, newUserId: string | null, newStart
     <header class="app-header">
       <h1>FirePlanner</h1>
       <div class="header-actions">
-        <button 
-          @click="handleUndo" 
-          :disabled="!canUndo"
-          class="btn-header"
-          title="Undo (Ctrl+Z)"
-        >
-          ↶ Undo
-        </button>
-        <button 
-          @click="handleRedo" 
-          :disabled="!canRedo"
-          class="btn-header"
-          title="Redo (Ctrl+Y)"
-        >
-          ↷ Redo
-        </button>
         <button @click="addNewUser" class="btn-header">Add User</button>
       </div>
     </header>
@@ -236,6 +259,7 @@ function handleMoveProject(projectId: string, newUserId: string | null, newStart
 .header-actions {
   display: flex;
   gap: 12px;
+  align-items: center;
 }
 
 .btn-header {
