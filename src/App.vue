@@ -53,6 +53,7 @@ onMounted(() => {
   
   // Listen for menu events from Electron
   if (window.electron) {
+    window.electron.receive('menu:new', handleNew)
     window.electron.receive('menu:save', handleSave)
     window.electron.receive('menu:open', handleLoad)
     window.electron.receive('menu:undo', handleUndo)
@@ -64,6 +65,14 @@ onUnmounted(() => {
 })
 
 // File operations
+function handleNew() {
+  if (confirm('Create new plan? Any unsaved changes will be lost.')) {
+    store.users = []
+    store.projects = []
+    selectedProject.value = null
+  }
+}
+
 async function handleSave() {
   if (!window.electron?.saveFile) return
 

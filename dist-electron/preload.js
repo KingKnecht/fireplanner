@@ -12,7 +12,7 @@ electron_1.contextBridge.exposeInMainWorld('electron', {
         }
     },
     receive: (channel, func) => {
-        const validChannels = ['fromMain', 'main-process-message', 'menu:save', 'menu:open', 'menu:undo', 'menu:redo'];
+        const validChannels = ['fromMain', 'main-process-message', 'menu:new', 'menu:save', 'menu:open', 'menu:undo', 'menu:redo'];
         if (validChannels.includes(channel)) {
             electron_1.ipcRenderer.on(channel, (event, ...args) => func(...args));
         }

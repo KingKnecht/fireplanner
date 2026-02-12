@@ -61,6 +61,14 @@ function createMenu() {
       label: 'File',
       submenu: [
         {
+          label: 'New',
+          accelerator: 'CommandOrControl+N',
+          click: () => {
+            win?.webContents.send('menu:new')
+          }
+        },
+        { type: 'separator' },
+        {
           label: 'Save',
           accelerator: 'CommandOrControl+S',
           click: () => {
