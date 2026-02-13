@@ -6,4 +6,5 @@ export default defineConfig({
   plugins: [
     vue(),
   ],
+  base: './', // Use relative paths for Electron
 })

@@ -1,15 +1,17 @@
 {
   "name": "fireplanner",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "author": "Sven Bardos",
   "description": "A project planning tool",
+  "license": "MIT",
   "main": "electron.cjs",
   "scripts": {
     "dev": "vite",
     "build:preload": "tsc electron/preload.ts --outDir dist-electron --module commonjs --target es2020 --moduleResolution node --skipLibCheck",
-    "electron:dev": "npm run build:preload && vite & sleep 2 && NODE_ENV=development ELECTRON_DISABLE_SECURITY_WARNINGS=true electron .",
+    "clean:dev": "lsof -ti:5173 | xargs kill -9 2>/dev/null || true",
+    "electron:dev": "npm run clean:dev && npm run build:preload && vite & sleep 2 && NODE_ENV=development ELECTRON_DISABLE_SECURITY_WARNINGS=true electron .",
     "build": "npm run build:preload && vue-tsc -b && vite build && electron-builder",
     "preview": "vite preview"
   },
@@ -40,7 +42,8 @@
     "files": [
       "dist",
       "dist-electron",
-      "electron.cjs"
+      "electron.cjs",
+      "assets"
     ],
     "mac": {
       "target": "dmg"
@@ -51,7 +54,8 @@
     },
     "linux": {
       "target": "AppImage",
-      "icon": "assets/fireplanner_64x64.ico"
+      "category": "Office",
+      "icon": "assets/fire_planner_512x512.png"
     }
   }
 }

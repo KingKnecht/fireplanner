@@ -18,7 +18,8 @@ async function loadConfig() {
     }
   }
   
-  const configPath = path.join(__dirname, 'config.json')
+  // Store config in userData directory (writable location)
+  const configPath = path.join(app.getPath('userData'), 'config.json')
   try {
     const data = await fs.readFile(configPath, 'utf-8')
     const loadedConfig = JSON.parse(data)
@@ -39,13 +40,14 @@ async function loadConfig() {
 
 function createWindow() {
   // Choose icon based on platform
+  // Assets are in the asar in production, in the project root in dev
   let iconPath
   if (process.platform === 'win32') {
-    iconPath = path.join(__dirname, 'assets/fire_planner_256x256.ico')
+    iconPath = path.join(__dirname, 'assets', 'fire_planner_256x256.ico')
   } else if (process.platform === 'darwin') {
-    iconPath = path.join(__dirname, 'assets/fire_planner.icns') // You'll need this for macOS
+    iconPath = path.join(__dirname, 'assets', 'fire_planner.icns')
   } else {
-    iconPath = path.join(__dirname, 'assets/fire_planner_512x512.png')
+    iconPath = path.join(__dirname, 'assets', 'fire_planner_512x512.png')
   }
   
   win = new BrowserWindow({
@@ -82,7 +84,8 @@ function createWindow() {
     win.loadURL('http://localhost:5173')
     win.webContents.openDevTools()
   } else {
-    win.loadFile(path.join(__dirname, 'dist/index.html'))
+    const indexPath = path.join(__dirname, 'dist', 'index.html')
+    win.loadFile(indexPath)
   }
 }
 
@@ -175,6 +178,24 @@ ipcMain.handle('autosave:save', async (_, data) => {
 })
 
 // Create application menu
+function showAboutDialog() {
+  const packageInfo = require('./package.json')
+  
+  dialog.showMessageBox(win, {
+    type: 'info',
+    title: 'About FirePlanner',
+    message: `FirePlanner v${packageInfo.version}`,
+    detail: `${packageInfo.description}\n\n` +
+            `Author: ${packageInfo.author}\n` +
+            `License: ${packageInfo.license || 'Not specified'}\n\n` +
+            `Built with Electron ${process.versions.electron}\n` +
+            `Chromium ${process.versions.chrome}\n` +
+            `Node.js ${process.versions.node}\n` +
+            `V8 ${process.versions.v8}`,
+    buttons: ['OK']
+  })
+}
+
 function createMenu() {
   const template = [
     {
@@ -240,7 +261,14 @@ function createMenu() {
         { role: 'zoomIn' },
         { role: 'zoomOut' },
         { type: 'separator' },
-        { role: 'togglefullscreen' }
+        { role: 'togglefullscreen' },
+        { type: 'separator' },
+        {
+          label: 'About',
+          click: () => {
+            showAboutDialog()
+          }
+        }
       ]
     }
   ]

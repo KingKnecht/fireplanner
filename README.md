@@ -1,38 +1,35 @@
 # FirePlanner
 
-A project planning desktop application built with Electron, Vite, and Vue 3 + TypeScript.
+A visual project planning desktop application that helps teams organize and track projects across user timelines. Built with Electron, Vite, and Vue 3 + TypeScript.
+
+FirePlanner displays projects as colored blocks in a grid where each column represents a team member and each row represents a weekday. This makes it easy to see who's working on what and when projects overlap.
+
+![FirePlanner Screenshot](./screenshots/main-window.png)
+
+## Quick Start
+
+After cloning the repository:
+
+```bash
+# Install dependencies
+npm install
+
+# Start the application in development mode
+npm run dev
+```
+
+The application will launch with DevTools open. Your planning data is automatically saved in your system's user data directory.
 
 ## Features
 
-- **Visual Project Planning**: Grid-based interface with users as columns and weekdays as rows
-- **Project Management**: Create, edit, and delete projects with a visual dialog
-- **Date Range Display**: Projects displayed as colored rectangles spanning their duration
-- **Weekend Filtering**: Only weekdays (Monday-Friday) are shown in the planner
-- **User Management**: Add and manage team members
-- **Responsive Interface**: Clean, modern UI with intuitive interactions
-
-## Project Structure
-
-```
-fireplanner/
-├── electron/             # Electron main process files
-│   ├── main.ts          # Main process entry point
-│   └── preload.ts       # Preload script for IPC
-├── src/
-│   ├── components/      # Vue components
-│   │   ├── PlannerGrid.vue     # Main grid component
-│   │   ├── ProjectBlock.vue    # Project rectangle display
-│   │   └── ProjectDialog.vue   # Create/edit dialog
-│   ├── stores/          # Pinia state management
-│   │   └── plannerStore.ts     # Main application store
-│   ├── utils/           # Utility functions
-│   │   └── dateUtils.ts        # Date manipulation helpers
-│   ├── types.ts         # TypeScript type definitions
-│   ├── App.vue          # Root component
-│   └── main.ts          # Application entry point
-├── dist/                # Built renderer process
-└── dist-electron/       # Built main process
-```
+- **Visual Timeline Grid**: Users as columns, weekdays as rows (Monday-Friday)
+- **Color-Coded Projects**: Assign custom colors to projects for easy identification
+- **Quick Editing**: Double-click projects or grid cells to create/edit
+- **User Management**: Add, rename, and remove team members
+- **Copy/Paste**: Duplicate projects with Ctrl+C, Ctrl+X, Ctrl+V
+- **Zoom Controls**: Scale the grid from 50% to 250% (Ctrl +/-)
+- ↩️*Undo/Redo**: Full history support for all changes
+- **Auto-Save**: Changes are automatically persisted to disk
 
 ## Tech Stack
 
@@ -44,25 +41,18 @@ fireplanner/
 
 ## Development
 
-Install dependencies:
-
 ```bash
+# Install dependencies
 npm install
-```
 
-Start development server:
+# Run in development mode (recommended)
+npm run dev
 
-```bash
+# Alternative: Run with separate Electron/Vite processes
 npm run electron:dev
 ```
 
-This will:
-- Compile the Electron preload script
-- Start the Vite dev server for hot module replacement
-- Launch the Electron application window (after 2 second delay)
-- Open DevTools automatically
-
-**Note**: Use `npm run electron:dev` (not `npm run dev`) to ensure DevTools work properly. The app runs Vite and Electron as separate processes.
+The `dev` script starts both Vite and Electron together. Changes to Vue components will hot-reload automatically.
 
 ## Usage
 
@@ -73,36 +63,46 @@ This will:
 
 ### Creating Projects
 - **Option 1**: Click "New Project" button in the header
-- **Option 2**: Double-click on any user column in the grid
+- **Managing Users
+- **Add User**: Click the "Add User" button in the header
+- **Rename User**: Double-click a user column header
+- **Delete User**: Click the × button on a user column (projects move to "Unassigned")
 
-### Editing Projects
-- Double-click on any project rectangle to edit its details
+### Managing Projects
+- **Create**: Click "New Project" button or double-click any grid cell
+- **Edit**: Double-click any project block
+- **Delete**: Select a project and press Delete or Backspace
+- **Copy/Cut/Paste**: Use Ctrl+C, Ctrl+X, Ctrl+V to duplicate projects
 
-### Project Dialog
-- **Name**: Project title
-- **User**: Assign to a team member
-- **Start Date**: Project start date
-- **End Date**: Project end date (must be after start date)
-- **Color**: Visual color for the project rectangle
-
-## Building
-
-Build the application for production:
+### Keyboard Shortcuts
+- `Ctrl + C` — Copy selected project
+- `Ctrl + X` — Cut selected project  
+- `Ctrl + V` — Paste project
+- `Delete` / `Backspace` — Delete selected project
+- `Ctrl + +` — Zoom in
+- `Ctrl + -` — Zoom out
+- `Ctrl + 0` — Reset zoom
+- `Ctrl + Z for Production
 
 ```bash
+# Build the application for your current platform
 npm run build
 ```
 
-This will:
-- Compile TypeScript and build the Vue app
-- Package the Electron application
-- Create a distributable in the `release/` directory
+Distributables will be created in the `release/` directory:
+- **Linux**: AppImage
+- **Windows**: NSIS installer (requires Windows or Wine)
+- **macOS**: DMG (requires macOS)
 
-## Configuration
+## Tech Stack
 
-Electron Builder configuration is in `package.json` under the `build` section:
-- **appId**: `com.fireplanner.app`
-- **Output directory**: `release/`
-- **Supported platforms**: macOS (DMG), Windows (NSIS), Linux (AppImage)
+- **[Electron](https://www.electronjs.org/)** — Desktop application framework
+- **[Vue 3](https://vuejs.org/)** — Progressive JavaScript framework with Composition API
+- **[Vite](https://vitejs.dev/)** — Fast build tool and dev server
+- **[TypeScript](https://www.typescriptlang.org/)** — Type-safe JavaScript
+- **[Pinia](https://pinia.vuejs.org/)** — State management with undo/redo support
+- **[PrimeVue](https://primevue.org/)** — UI component library
 
+## License
 
+MIT
