@@ -38,17 +38,25 @@ export const usePlannerStore = defineStore('planner', () => {
   }
 
   function addProject(project: Omit<Project, 'id' | 'endDate' | 'zIndex'> & { zIndex?: number }) {
-    const endDate = calculateProjectEndDate(
+    const projectEndDate = calculateProjectEndDate(
       project.startDate,
       project.durationDays,
       project.bufferPercent,
       project.capacityPercent
     )
     
+    // Auto-expand date range if project is outside current range
+    if (project.startDate < startDate.value) {
+      startDate.value = new Date(project.startDate.getFullYear(), 0, 1)
+    }
+    if (projectEndDate > endDate.value) {
+      endDate.value = new Date(projectEndDate.getFullYear(), 11, 31)
+    }
+    
     const newProject: Project = {
       ...project,
       id: nanoid(10),
-      endDate,
+      endDate: projectEndDate,
       zIndex: project.zIndex ?? 1
     }
     projects.value.push(newProject)
@@ -81,6 +89,14 @@ export const usePlannerStore = defineStore('planner', () => {
           updatedProject.bufferPercent,
           updatedProject.capacityPercent
         )
+      }
+      
+      // Auto-expand date range if project is outside current range
+      if (updatedProject.startDate < startDate.value) {
+        startDate.value = new Date(updatedProject.startDate.getFullYear(), 0, 1)
+      }
+      if (updatedProject.endDate > endDate.value) {
+        endDate.value = new Date(updatedProject.endDate.getFullYear(), 11, 31)
       }
       
       projects.value[index] = updatedProject

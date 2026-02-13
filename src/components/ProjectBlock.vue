@@ -29,15 +29,32 @@ const emit = defineEmits<{
 }>()
 
 const blockStyle = computed<CSSProperties>(() => {
+  // Safety check: if project is before grid start, don't render
+  if (props.project.startDate < props.startDate) {
+    return {
+      display: 'none'
+    }
+  }
+  
   // Calculate position
   let topPosition = 0
   const currentDate = new Date(props.startDate)
+  const maxIterations = 5000 // Safety limit to prevent infinite loops
+  let iterations = 0
   
-  while (!isSameDay(currentDate, props.project.startDate)) {
+  while (!isSameDay(currentDate, props.project.startDate) && iterations < maxIterations) {
     if (currentDate.getDay() !== 0 && currentDate.getDay() !== 6) {
       topPosition++
     }
     currentDate.setDate(currentDate.getDate() + 1)
+    iterations++
+  }
+  
+  // If we hit the limit, project is too far in the future - don't render
+  if (iterations >= maxIterations) {
+    return {
+      display: 'none'
+    }
   }
 
   // Calculate height based on duration + buffer (supports half days)
