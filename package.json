@@ -33,13 +33,16 @@
     "@vitest/ui": "^4.0.18",
     "@vue/test-utils": "^2.4.6",
     "@vue/tsconfig": "^0.8.1",
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
     "electron": "^40.3.0",
     "electron-builder": "^26.7.0",
     "happy-dom": "^20.6.1",
     "typescript": "~5.9.3",
     "vite": "^7.3.1",
     "vitest": "^4.0.18",
-    "vue-tsc": "^3.1.5"
+    "vue-tsc": "^3.1.5",
+    "wait-on": "^9.0.4"
   },
   "build": {
     "appId": "com.fireplanner.app",
