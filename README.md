@@ -14,8 +14,8 @@ After cloning the repository:
 # Install dependencies
 npm install
 
-# Start the application in development mode
-npm run dev
+# Start the application in development mode (Windows, Linux, macOS)
+npm run dev:electron
 ```
 
 The application will launch with DevTools open. Your planning data is automatically saved in your system's user data directory.
@@ -37,11 +37,14 @@ The application will launch with DevTools open. Your planning data is automatica
 # Install dependencies
 npm install
 
-#Start app
+# Start the Electron app (cross-platform)
+npm run dev:electron
+
+# Or on Linux/macOS with auto-cleanup of stale Vite processes
 npm run electron:dev
 ```
 
-The `dev` script starts both Vite and Electron together. Changes to Vue components will hot-reload automatically.
+Both Vite and Electron run together. Changes to Vue components will hot-reload automatically.
 
 ## Testing
 
