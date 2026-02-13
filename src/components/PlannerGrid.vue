@@ -302,6 +302,7 @@ function handleDrop(event: DragEvent, userId: string | null) {
   position: sticky;
   top: 0;
   z-index: 100;
+  min-width: fit-content;
 }
 
 .header-cell {
@@ -349,7 +350,7 @@ function handleDrop(event: DragEvent, userId: string | null) {
 
 .grid-body {
   display: flex;
-  flex: 1;
+  min-width: fit-content;
 }
 
 .date-column {
@@ -419,8 +420,9 @@ function handleDrop(event: DragEvent, userId: string | null) {
 }
 
 .user-column {
+  width: 200px;
   min-width: 200px;
-  flex: 1;
+  flex-shrink: 0;
   border-right: 1px solid #ddd;
   position: relative;
 }
