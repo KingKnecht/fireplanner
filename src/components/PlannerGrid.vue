@@ -1,7 +1,21 @@
 <template>
   <div ref="plannerGridRef" class="planner-grid">
     <div class="grid-header">
-      <div class="date-column header-cell"></div>
+      <div class="date-column header-cell">
+        <div class="zoom-controls">
+          <button @click="zoomOut" class="btn-zoom" title="Zoom out (Ctrl -)">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M2 8h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <span class="zoom-level">{{ Math.round(zoomLevel * 100) }}%</span>
+          <button @click="zoomIn" class="btn-zoom" title="Zoom in (Ctrl +)">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
       <div v-for="user in users" :key="user.id" class="user-column header-cell">
         <span class="user-name">{{ user.name }}</span>
         <button 
@@ -86,7 +100,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import ProjectBlock from './ProjectBlock.vue'
 import type { User, Project } from '../types'
 import { formatDate } from '../utils/dateUtils'
@@ -106,10 +120,50 @@ const emit = defineEmits<{
   deleteUser: [userId: string]
 }>()
 
-const cellHeight = 40
+const BASE_CELL_HEIGHT = 40
+const MIN_ZOOM = 0.5
+const MAX_ZOOM = 2.5
+const ZOOM_STEP = 0.1
+
+const zoomLevel = ref(1)
+const cellHeight = ref(BASE_CELL_HEIGHT)
+
 const draggedProject = ref<Project | null>(null)
 const dragOffsetX = ref(0)
 const dragOffsetY = ref(0)
+
+function zoomIn() {
+  if (zoomLevel.value < MAX_ZOOM) {
+    zoomLevel.value = Math.min(zoomLevel.value + ZOOM_STEP, MAX_ZOOM)
+    cellHeight.value = Math.round(BASE_CELL_HEIGHT * zoomLevel.value)
+    localStorage.setItem('plannerZoomLevel', zoomLevel.value.toString())
+  }
+}
+
+function zoomOut() {
+  if (zoomLevel.value > MIN_ZOOM) {
+    zoomLevel.value = Math.max(zoomLevel.value - ZOOM_STEP, MIN_ZOOM)
+    cellHeight.value = Math.round(BASE_CELL_HEIGHT * zoomLevel.value)
+    localStorage.setItem('plannerZoomLevel', zoomLevel.value.toString())
+  }
+}
+
+function handleZoomKeyboard(event: KeyboardEvent) {
+  if (event.ctrlKey || event.metaKey) {
+    if (event.key === '+' || event.key === '=') {
+      event.preventDefault()
+      zoomIn()
+    } else if (event.key === '-') {
+      event.preventDefault()
+      zoomOut()
+    } else if (event.key === '0') {
+      event.preventDefault()
+      zoomLevel.value = 1
+      cellHeight.value = BASE_CELL_HEIGHT
+      localStorage.setItem('plannerZoomLevel', '1')
+    }
+  }
+}
 
 function handleDeleteUser(userId: string, userName: string) {
   if (confirm(`Delete user "${userName}"? All their projects will be moved to Unassigned.`)) {
@@ -123,15 +177,32 @@ function scrollToToday() {
     const todayIndex = props.weekdays.findIndex(date => isToday(date))
     if (todayIndex !== -1) {
       // Center today's row in the viewport
-      const scrollPosition = todayIndex * cellHeight - (plannerGridRef.value.clientHeight / 2) + cellHeight
+      const scrollPosition = todayIndex * cellHeight.value - (plannerGridRef.value.clientHeight / 2) + cellHeight.value
       plannerGridRef.value.scrollTop = Math.max(0, scrollPosition)
     }
   }
 }
 
 onMounted(() => {
+  // Load zoom level from localStorage
+  const savedZoom = localStorage.getItem('plannerZoomLevel')
+  if (savedZoom) {
+    const zoom = parseFloat(savedZoom)
+    if (zoom >= MIN_ZOOM && zoom <= MAX_ZOOM) {
+      zoomLevel.value = zoom
+      cellHeight.value = Math.round(BASE_CELL_HEIGHT * zoom)
+    }
+  }
+  
   // Scroll to today's date on mount
   scrollToToday()
+  
+  // Add keyboard listener for zoom
+  window.addEventListener('keydown', handleZoomKeyboard)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleZoomKeyboard)
 })
 
 defineExpose({
@@ -188,7 +259,7 @@ function handleDrop(event: DragEvent, userId: string | null) {
   
   // Calculate which cell the top-left corner is over
   const relativeY = topLeftY - rect.top
-  const cellIndex = Math.floor(relativeY / cellHeight)
+  const cellIndex = Math.floor(relativeY / cellHeight.value)
   
   // Ensure the index is within bounds
   if (cellIndex >= 0 && cellIndex < props.weekdays.length && props.weekdays[cellIndex]) {
@@ -246,6 +317,11 @@ function handleDrop(event: DragEvent, userId: string | null) {
   position: relative;
 }
 
+.date-column.header-cell {
+  background: #1a252f;
+  padding: 8px;
+}
+
 .user-name {
   flex: 1;
 }
@@ -286,14 +362,60 @@ function handleDrop(event: DragEvent, userId: string | null) {
 }
 
 .date-cell {
-  height: 40px;
+  height: v-bind('cellHeight + "px"');
   display: flex;
   align-items: center;
   justify-content: center;
   border-bottom: 1px solid #bdc3c7;
-  font-size: 14px;
+  font-size: v-bind('Math.max(10, Math.min(14, 14 * zoomLevel)) + "px"');
   font-weight: 500;
   color: #2c3e50;
+}
+
+.zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  justify-content: center;
+}
+
+.btn-zoom {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 3px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.btn-zoom:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.btn-zoom:active {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.btn-zoom svg {
+  width: 14px;
+  height: 14px;
+}
+
+.zoom-level {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.95);
+  min-width: 32px;
+  text-align: center;
+  font-weight: 500;
+  flex-shrink: 0;
 }
 
 .user-column {
@@ -318,7 +440,7 @@ function handleDrop(event: DragEvent, userId: string | null) {
 }
 
 .grid-cell {
-  height: 40px;
+  height: v-bind('cellHeight + "px"');
   border-bottom: 1px solid #e0e0e0;
   background: white;
   transition: background 0.2s;
