@@ -22,12 +22,13 @@
       </div>
 
       <div class="form-group">
-        <label>Duration (days):</label>
+        <label>Duration (days, max 300):</label>
         <input 
           v-model.number="form.durationDays" 
           type="number" 
           step="0.5" 
           min="0.5" 
+          max="300"
           placeholder="e.g. 4.5"
         />
       </div>
@@ -159,6 +160,15 @@ const form = ref({
   startDate: new Date() as Date,
   color: COLOR_PALETTE[0],
   zIndex: 1
+})
+
+// Clamp duration to reasonable maximum to prevent performance issues
+watch(() => form.value.durationDays, (newDuration) => {
+  if (newDuration > 300) {
+    form.value.durationDays = 300
+  } else if (newDuration < 0.5) {
+    form.value.durationDays = 0.5
+  }
 })
 
 const calculatedEndDate = computed(() => {
