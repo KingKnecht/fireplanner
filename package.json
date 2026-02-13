@@ -14,6 +14,8 @@
     "clean:dev": "lsof -ti:5173 | xargs kill -9 2>/dev/null || true",
     "electron:dev": "npm run clean:dev && npm run dev:electron",
     "build": "npm run build:preload && vue-tsc -b && vite build && electron-builder",
+    "build:linux": "npm run build:preload && vue-tsc -b && vite build && electron-builder --linux",
+    "build:win": "npm run build:preload && vue-tsc -b && vite build && electron-builder --win",
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",
@@ -48,6 +50,7 @@
   "build": {
     "appId": "com.fireplanner.app",
     "productName": "FirePlanner",
+    "publish": null,
     "directories": {
       "output": "release"
     },
