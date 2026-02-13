@@ -14,6 +14,11 @@ const plannerGridRef = ref<InstanceType<typeof PlannerGrid> | null>(null)
 
 const newProjectData = ref<{ userId: string | null; startDate: Date } | null>(null)
 
+// Clipboard for copy/cut/paste
+const clipboard = ref<Omit<Project, 'id'> | null>(null)
+const isCutOperation = ref(false)
+const cutProjectId = ref<string | null>(null)
+
 // Autosave
 const autosaveConfig = ref<AppConfig['autosave'] | null>(null)
 let autosaveTimer: NodeJS.Timeout | null = null
@@ -86,15 +91,108 @@ onUnmounted(() => {
 })
 
 function handleKeyDown(event: KeyboardEvent) {
+  const target = event.target as HTMLElement
+  const isInputField = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA'
+  
+  // Copy project with Ctrl+C
+  if (event.ctrlKey && event.key === 'c' && selectedProject.value && !isInputField) {
+    event.preventDefault()
+    handleCopy()
+    return
+  }
+  
+  // Cut project with Ctrl+X
+  if (event.ctrlKey && event.key === 'x' && selectedProject.value && !isInputField) {
+    event.preventDefault()
+    handleCut()
+    return
+  }
+  
+  // Paste project with Ctrl+V
+  if (event.ctrlKey && event.key === 'v' && clipboard.value && !isInputField) {
+    event.preventDefault()
+    handlePaste()
+    return
+  }
+  
   // Delete selected project with Delete or Backspace key
   if ((event.key === 'Delete' || event.key === 'Backspace') && selectedProject.value) {
     // Prevent backspace from navigating back
-    const target = event.target as HTMLElement
-    if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') {
+    if (!isInputField) {
       event.preventDefault()
       handleProjectDelete()
     }
   }
+}
+
+function handleCopy() {
+  if (!selectedProject.value) return
+  
+  // Copy all project properties except id
+  clipboard.value = {
+    name: selectedProject.value.name,
+    userId: selectedProject.value.userId,
+    startDate: selectedProject.value.startDate,
+    endDate: selectedProject.value.endDate,
+    durationDays: selectedProject.value.durationDays,
+    bufferPercent: selectedProject.value.bufferPercent,
+    capacityPercent: selectedProject.value.capacityPercent,
+    color: selectedProject.value.color,
+    zIndex: selectedProject.value.zIndex
+  }
+  isCutOperation.value = false
+  cutProjectId.value = null
+  console.log('[Clipboard] Copied project:', selectedProject.value.name)
+}
+
+function handleCut() {
+  if (!selectedProject.value) return
+  
+  // Copy project data
+  clipboard.value = {
+    name: selectedProject.value.name,
+    userId: selectedProject.value.userId,
+    startDate: selectedProject.value.startDate,
+    endDate: selectedProject.value.endDate,
+    durationDays: selectedProject.value.durationDays,
+    bufferPercent: selectedProject.value.bufferPercent,
+    capacityPercent: selectedProject.value.capacityPercent,
+    color: selectedProject.value.color,
+    zIndex: selectedProject.value.zIndex
+  }
+  isCutOperation.value = true
+  cutProjectId.value = selectedProject.value.id
+  console.log('[Clipboard] Cut project:', selectedProject.value.name)
+}
+
+function handlePaste() {
+  if (!clipboard.value) return
+  
+  // Create new project with clipboard data (new ID will be generated)
+  const newProject = store.addProject({
+    name: clipboard.value.name,
+    userId: clipboard.value.userId,
+    startDate: clipboard.value.startDate,
+    durationDays: clipboard.value.durationDays,
+    bufferPercent: clipboard.value.bufferPercent,
+    capacityPercent: clipboard.value.capacityPercent,
+    color: clipboard.value.color,
+    zIndex: clipboard.value.zIndex
+  })
+  
+  // If it was a cut operation, delete the original project
+  if (isCutOperation.value && cutProjectId.value) {
+    store.deleteProject(cutProjectId.value)
+    isCutOperation.value = false
+    cutProjectId.value = null
+  }
+  
+  // Select the newly pasted project
+  if (newProject) {
+    selectedProject.value = newProject
+  }
+  
+  console.log('[Clipboard] Pasted project:', clipboard.value.name)
 }
 
 // File operations
