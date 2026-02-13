@@ -55,6 +55,7 @@
       "dist",
       "dist-electron",
       "electron.cjs",
+      "config.json",
       "assets"
     ],
     "mac": {

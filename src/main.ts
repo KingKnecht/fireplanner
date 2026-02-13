@@ -3,6 +3,7 @@ import { createPinia } from 'pinia'
 import { PiniaHistory } from 'pinia-plugin-history'
 import PrimeVue from 'primevue/config'
 import Aura from '@primeuix/themes/aura'
+import ToastService from 'primevue/toastservice'
 import './style.css'
 import App from './App.vue'
 
@@ -19,4 +20,5 @@ app.use(PrimeVue, {
     }
   }
 })
+app.use(ToastService)
 app.mount('#app')

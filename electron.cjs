@@ -9,13 +9,29 @@ let config = null
 
 // Load or create config
 async function loadConfig() {
-  // Default configuration with proper userData path
-  const defaultConfig = {
+  // Try to load default config from bundled file
+  let defaultConfig = {
     autosave: {
       enabled: true,
       intervalSeconds: 30,
       folder: path.join(app.getPath('userData'), 'autosave')
     }
+  }
+  
+  try {
+    const bundledConfigPath = path.join(__dirname, 'config.json')
+    const bundledData = await fs.readFile(bundledConfigPath, 'utf-8')
+    const bundledConfig = JSON.parse(bundledData)
+    // Merge with defaults, ensuring folder is set
+    defaultConfig = {
+      autosave: {
+        ...bundledConfig.autosave,
+        folder: bundledConfig.autosave?.folder || path.join(app.getPath('userData'), 'autosave')
+      }
+    }
+  } catch (error) {
+    // Bundled config doesn't exist or is invalid, use hardcoded defaults
+    console.log('[Config] Using hardcoded defaults:', error.message)
   }
   
   // Store config in userData directory (writable location)

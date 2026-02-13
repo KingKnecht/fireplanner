@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
+import { useToast } from 'primevue/usetoast'
+import Toast from 'primevue/toast'
 import PlannerGrid from './components/PlannerGrid.vue'
 import ProjectEditorPanel from './components/ProjectEditorPanel.vue'
 import UserDialog from './components/UserDialog.vue'
 import { usePlannerStore } from './stores/plannerStore'
 import type { Project } from './types'
 import type { AppConfig } from './electron'
+
+const toast = useToast()
 
 const store = usePlannerStore()
 const isUserDialogOpen = ref(false)
@@ -24,6 +28,7 @@ const autosaveConfig = ref<AppConfig['autosave'] | null>(null)
 let autosaveTimer: NodeJS.Timeout | null = null
 const isDirty = ref(false)
 const currentFilePath = ref<string | null>(null)
+const isLoadingFile = ref(false)
 
 // Undo/Redo functionality
 const canUndo = ref(false)
@@ -61,8 +66,10 @@ onMounted(async () => {
   // @ts-ignore
   store.$subscribe(() => {
     updateHistoryState()
-    setDirty(true)
-    scheduleAutosave()
+    if (!isLoadingFile.value) {
+      setDirty(true)
+      scheduleAutosave()
+    }
   })
   
   // Listen for menu events from Electron
@@ -209,11 +216,13 @@ function setDirty(dirty: boolean) {
 
 function handleNew() {
   if (confirm('Create new plan? Any unsaved changes will be lost.')) {
+    isLoadingFile.value = true
     store.users = []
     store.projects = []
     selectedProject.value = null
     currentFilePath.value = null
     setDirty(false)
+    isLoadingFile.value = false
   }
 }
 
@@ -265,6 +274,7 @@ async function handleLoad() {
   try {
     const result = await window.electron.openFile()
     if (result.success && result.data) {
+      isLoadingFile.value = true
       // Store the opened file path
       if (result.filePath) {
         currentFilePath.value = result.filePath
@@ -280,12 +290,14 @@ async function handleLoad() {
       // Clear selection after load
       selectedProject.value = null
       setDirty(false)
+      isLoadingFile.value = false
       // Scroll to today after loading
       setTimeout(() => {
         plannerGridRef.value?.scrollToToday()
       }, 100)
     }
   } catch (error) {
+    isLoadingFile.value = false
     console.error('Failed to load:', error)
     alert('Failed to load file: ' + error)
   }
@@ -310,6 +322,13 @@ function scheduleAutosave() {
 
 async function performAutosave() {
   if (!window.electron?.autosave) return
+  
+  // Only autosave if there are changes
+  if (!isDirty.value) {
+    console.log('[Autosave] Skipping - no changes')
+    scheduleAutosave()
+    return
+  }
   
   console.log('[Autosave] Starting autosave...')
   
@@ -340,11 +359,33 @@ async function performAutosave() {
     
     if (result.success) {
       console.log('[Autosave] Success:', result.path)
+      setDirty(false)
+      toast.add({
+        severity: 'success',
+        summary: 'Autosaved',
+        detail: result.path,
+        life: 3000
+      })
     } else {
       console.error('[Autosave] Failed:', result.error)
+      toast.add({
+        severity: 'error',
+        summary: 'Autosave Failed',
+        detail: result.error,
+        life: 5000
+      })
     }
   } catch (error) {
     console.error('[Autosave] Error:', error)
+    toast.add({
+      severity: 'error',
+      summary: 'Autosave Error',
+      detail: String(error),
+      life: 5000
+    })
+  } finally {
+    // Schedule the next autosave
+    scheduleAutosave()
   }
 }
 
@@ -368,6 +409,7 @@ function handleProjectCreate(data: {
   zIndex: number
 }) {
   const project = store.addProject(data)
+  setDirty(true)
   // Auto-select the newly created project
   if (project) {
     selectedProject.value = project
@@ -383,6 +425,7 @@ function handleProjectUpdate(projectId: string, updates: Partial<{
   color: string
 }>) {
   store.updateProject(projectId, updates)
+  setDirty(true)
   // Update selectedProject to point to the updated object from the store
   if (selectedProject.value && selectedProject.value.id === projectId) {
     selectedProject.value = store.projects.find(p => p.id === projectId) || null
@@ -392,6 +435,7 @@ function handleProjectUpdate(projectId: string, updates: Partial<{
 function handleProjectDelete() {
   if (selectedProject.value) {
     store.deleteProject(selectedProject.value.id)
+    setDirty(true)
     selectedProject.value = null
   }
 }
@@ -403,6 +447,7 @@ function handleProjectClear() {
 
 function handleUpdateZIndex(projectId: string, zIndex: number) {
   store.updateProject(projectId, { zIndex })
+  setDirty(true)
   // Update selectedProject to point to the updated object from the store
   if (selectedProject.value && selectedProject.value.id === projectId) {
     selectedProject.value = store.projects.find(p => p.id === projectId) || null
@@ -421,6 +466,7 @@ function openGitHub() {
 
 function handleUserDialogSubmit(data: { name: string }) {
   store.addUser(data.name)
+  setDirty(true)
 }
 
 function handleUserDialogClose() {
@@ -432,6 +478,7 @@ function handleMoveProject(projectId: string, newUserId: string | null, newStart
     userId: newUserId,
     startDate: newStartDate
   })
+  setDirty(true)
   // Update selectedProject to point to the updated object from the store
   if (selectedProject.value && selectedProject.value.id === projectId) {
     selectedProject.value = store.projects.find(p => p.id === projectId) || null
@@ -440,6 +487,7 @@ function handleMoveProject(projectId: string, newUserId: string | null, newStart
 
 function handleDeleteUser(userId: string) {
   store.removeUser(userId)
+  setDirty(true)
   // Clear selection if the deleted user's project was selected
   if (selectedProject.value && selectedProject.value.userId === userId) {
     // Refresh the selectedProject to get the updated version (now with userId: null)
@@ -449,6 +497,7 @@ function handleDeleteUser(userId: string) {
 </script>
 
 <template>
+  <Toast />
   <div class="app">
     <header class="app-header">
       <div class="header-left">
