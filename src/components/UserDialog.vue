@@ -9,11 +9,6 @@
           <input v-model="form.name" type="text" required autofocus />
         </div>
 
-        <div class="form-group">
-          <label>Color:</label>
-          <input v-model="form.color" type="color" />
-        </div>
-
         <div class="dialog-actions">
           <button type="button" class="btn-secondary" @click="closeDialog">
             Cancel
@@ -36,19 +31,17 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   close: []
-  submit: [data: { name: string; color: string }]
+  submit: [data: { name: string }]
 }>()
 
 const form = ref({
-  name: '',
-  color: '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')
+  name: ''
 })
 
 watch(() => props.isOpen, (isOpen) => {
   if (isOpen) {
     form.value = {
-      name: '',
-      color: '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')
+      name: ''
     }
   }
 })
@@ -60,8 +53,7 @@ function closeDialog() {
 function handleSubmit() {
   if (form.value.name.trim()) {
     emit('submit', {
-      name: form.value.name.trim(),
-      color: form.value.color
+      name: form.value.name.trim()
     })
     closeDialog()
   }
@@ -115,11 +107,6 @@ function handleSubmit() {
   border-radius: 4px;
   font-size: 14px;
   box-sizing: border-box;
-}
-
-.form-group input[type="color"] {
-  height: 40px;
-  padding: 4px;
 }
 
 .dialog-actions {

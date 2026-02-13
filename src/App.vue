@@ -419,8 +419,8 @@ function openGitHub() {
   }
 }
 
-function handleUserDialogSubmit(data: { name: string; color: string }) {
-  store.addUser(data.name, data.color)
+function handleUserDialogSubmit(data: { name: string }) {
+  store.addUser(data.name)
 }
 
 function handleUserDialogClose() {
