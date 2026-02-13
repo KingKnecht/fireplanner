@@ -111,12 +111,33 @@ npm run test:coverage
 ```bash
 # Build the application for your current platform
 npm run build
+
+# Or build for specific platforms
+npm run build:linux    # Build Linux AppImage
+npm run build:win      # Build Windows installer (NSIS)
 ```
 
 Distributables will be created in the `release/` directory:
-- **Linux**: AppImage
-- **Windows**: NSIS installer (requires Windows or Wine)
-- **macOS**: DMG (requires macOS)
+- **Linux**: AppImage (FirePlanner-x.x.x.AppImage)
+- **Windows**: NSIS installer (FirePlanner-Setup-x.x.x.exe)
+- **macOS**: DMG (requires macOS to build)
+
+### Automated Releases
+
+The project includes a GitHub Actions workflow that automatically builds Linux and Windows releases when you push a version tag:
+
+```bash
+# Create and push a version tag
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+The workflow will:
+1. Build Linux AppImage on Ubuntu
+2. Build Windows installer on Windows
+3. Create a GitHub release with both artifacts attached
+
+You can also manually trigger the build from the Actions tab in GitHub.
 
 ## License
 
