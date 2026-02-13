@@ -467,4 +467,64 @@ function handleDrop(event: DragEvent, userId: string | null) {
 .drop-zone-active .grid-cell {
   transition: background 0.15s;
 }
+
+</style>
+
+<style>
+/* Dark mode styles - non-scoped */
+.dark-mode .planner-grid {
+  background: #1a1a1a;
+}
+
+.dark-mode .grid-header {
+  background: #0d0d0d;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.dark-mode .date-column.header-cell {
+  background: #050505;
+}
+
+.dark-mode .date-column {
+  background: #2a2a2a;
+  border-right: 2px solid #3a3a3a;
+}
+
+.dark-mode .date-cell {
+  color: #e0e0e0;
+  border-bottom: 1px solid #3a3a3a;
+}
+
+.dark-mode .user-column {
+  border-right: 1px solid #3a3a3a;
+}
+
+.dark-mode .grid-cell {
+  background: #1a1a1a;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.dark-mode .user-column:hover .grid-cell {
+  background: #222;
+}
+
+.dark-mode .friday-cell {
+  border-bottom: 3px solid #4a4a4a !important;
+}
+
+.dark-mode .today-cell {
+  background: #3a3a1a !important;
+}
+
+.dark-mode .unassigned-header {
+  background: #1a2228 !important;
+}
+
+.dark-mode .unassigned-column {
+  background: #1a1a1a;
+}
+
+.dark-mode .drop-zone-active {
+  background: rgba(76, 175, 80, 0.1);
+}
 </style>

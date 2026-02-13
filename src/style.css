@@ -47,3 +47,13 @@ select:focus {
   outline: 2px solid #4CAF50;
   outline-offset: 0;
 }
+
+/* Dark mode base styles */
+.dark-mode {
+  color-scheme: dark;
+}
+
+.dark-mode body {
+  background: #1a1a1a;
+  color: #e0e0e0;
+}

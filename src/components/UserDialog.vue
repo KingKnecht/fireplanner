@@ -143,4 +143,44 @@ function handleSubmit() {
 .btn-secondary:hover {
   background: #e0e0e0;
 }
+
+</style>
+
+<style>
+/* Dark mode styles - non-scoped */
+.dark-mode .dialog-overlay {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.dark-mode .dialog {
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+}
+
+.dark-mode .dialog h2 {
+  color: #e0e0e0;
+}
+
+.dark-mode .form-group label {
+  color: #b0b0b0;
+}
+
+.dark-mode .form-group input {
+  background: #2a2a2a;
+  border: 1px solid #3a3a3a;
+  color: #e0e0e0;
+}
+
+.dark-mode .form-group input:focus {
+  border-color: #4CAF50;
+}
+
+.dark-mode .btn-secondary {
+  background: #2a2a2a;
+  color: #e0e0e0;
+}
+
+.dark-mode .btn-secondary:hover {
+  background: #3a3a3a;
+}
 </style>

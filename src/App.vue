@@ -30,6 +30,24 @@ const isDirty = ref(false)
 const currentFilePath = ref<string | null>(null)
 const isLoadingFile = ref(false)
 
+// Dark mode
+const isDarkMode = ref(false)
+
+function toggleDarkMode() {
+  isDarkMode.value = !isDarkMode.value
+  if (isDarkMode.value) {
+    document.documentElement.classList.add('dark-mode')
+  } else {
+    document.documentElement.classList.remove('dark-mode')
+  }
+  localStorage.setItem('darkMode', isDarkMode.value ? 'true' : 'false')
+  
+  // Notify Electron to update menu
+  if (window.electron?.send) {
+    window.electron.send('window:setDarkMode', isDarkMode.value)
+  }
+}
+
 // Undo/Redo functionality
 const canUndo = ref(false)
 const canRedo = ref(false)
@@ -72,6 +90,17 @@ onMounted(async () => {
     }
   })
   
+  // Initialize dark mode from localStorage
+  const savedDarkMode = localStorage.getItem('darkMode')
+  if (savedDarkMode === 'true') {
+    isDarkMode.value = true
+    document.documentElement.classList.add('dark-mode')
+    // Notify Electron
+    if (window.electron?.send) {
+      window.electron.send('window:setDarkMode', true)
+    }
+  }
+  
   // Listen for menu events from Electron
   if (window.electron) {
     window.electron.receive('menu:new', handleNew)
@@ -79,6 +108,7 @@ onMounted(async () => {
     window.electron.receive('menu:open', handleLoad)
     window.electron.receive('menu:undo', handleUndo)
     window.electron.receive('menu:redo', handleRedo)
+    window.electron.receive('menu:toggleDarkMode', toggleDarkMode)
     
     // Load autosave config
     const config = await window.electron.getConfig()
@@ -656,5 +686,35 @@ function handleDeleteUser(userId: string) {
   flex: 1;
   overflow: hidden;
   display: flex;
+}
+
+</style>
+
+<style>
+/* Dark mode styles - non-scoped for global application */
+.dark-mode .app-header {
+  background: #0d0d0d;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.dark-mode .current-file {
+  color: #888;
+}
+
+.dark-mode .btn-header {
+  background: #2a2a2a;
+  color: #e0e0e0;
+}
+
+.dark-mode .btn-header:hover {
+  background: #3a3a3a;
+}
+
+.dark-mode .btn-header:disabled:hover {
+  background: #2a2a2a;
+}
+
+.dark-mode .github-link:hover {
+  background: rgba(255, 255, 255, 0.05);
 }
 </style>

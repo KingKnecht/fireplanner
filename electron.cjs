@@ -6,6 +6,7 @@ const isDev = process.env.NODE_ENV === 'development'
 
 let win = null
 let config = null
+let isDarkMode = false
 
 // Load or create config
 async function loadConfig() {
@@ -146,6 +147,12 @@ ipcMain.on('window:setTitle', (_, title) => {
   }
 })
 
+// Update dark mode state
+ipcMain.on('window:setDarkMode', (_, darkMode) => {
+  isDarkMode = darkMode
+  createMenu()
+})
+
 // Open external URL in default browser
 ipcMain.handle('shell:openExternal', async (_, url) => {
   const { shell } = require('electron')
@@ -278,6 +285,14 @@ function createMenu() {
         { role: 'zoomOut' },
         { type: 'separator' },
         { role: 'togglefullscreen' },
+        { type: 'separator' },
+        {
+          label: isDarkMode ? 'Toggle Light Mode' : 'Toggle Dark Mode',
+          accelerator: 'CommandOrControl+D',
+          click: () => {
+            win?.webContents.send('menu:toggleDarkMode')
+          }
+        },
         { type: 'separator' },
         {
           label: 'About',

@@ -6,13 +6,13 @@ const electron_1 = require("electron");
 electron_1.contextBridge.exposeInMainWorld('electron', {
     send: (channel, data) => {
         // whitelist channels
-        const validChannels = ['toMain', 'window:setTitle'];
+        const validChannels = ['toMain', 'window:setTitle', 'window:setDarkMode'];
         if (validChannels.includes(channel)) {
             electron_1.ipcRenderer.send(channel, data);
         }
     },
     receive: (channel, func) => {
-        const validChannels = ['fromMain', 'main-process-message', 'menu:new', 'menu:save', 'menu:open', 'menu:undo', 'menu:redo'];
+        const validChannels = ['fromMain', 'main-process-message', 'menu:new', 'menu:save', 'menu:open', 'menu:undo', 'menu:redo', 'menu:toggleDarkMode'];
         if (validChannels.includes(channel)) {
             electron_1.ipcRenderer.on(channel, (event, ...args) => func(...args));
         }

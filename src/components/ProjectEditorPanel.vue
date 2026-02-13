@@ -459,4 +459,52 @@ function handleClear() {
 :deep(.p-datepicker input) {
   width: 100%;
 }
+
+</style>
+
+<style>
+/* Dark mode styles - non-scoped */
+.dark-mode .project-editor-panel {
+  background: #1a1a1a;
+  border-left: 2px solid #2a2a2a;
+}
+
+.dark-mode .panel-header {
+  background: #0d0d0d;
+}
+
+.dark-mode .btn-clear {
+  border-color: #666;
+}
+
+.dark-mode .btn-clear:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.dark-mode .form-group label {
+  color: #b0b0b0;
+}
+
+.dark-mode .form-group input,
+.dark-mode .form-group select {
+  background: #2a2a2a;
+  border: 1px solid #3a3a3a;
+  color: #e0e0e0;
+}
+
+.dark-mode .form-group input:focus,
+.dark-mode .form-group select:focus {
+  border-color: #4CAF50;
+  background: #2a2a2a;
+}
+
+.dark-mode .calculated-info {
+  background: #2a2a2a;
+  color: #b0b0b0;
+}
+
+.dark-mode .color-swatch.selected {
+  border-color: #4CAF50;
+  box-shadow: 0 0 0 2px #1a1a1a, 0 0 0 4px #4CAF50;
+}
 </style>
