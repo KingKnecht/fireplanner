@@ -22,4 +22,5 @@ electron_1.contextBridge.exposeInMainWorld('electron', {
     getConfig: () => electron_1.ipcRenderer.invoke('config:get'),
     autosave: (data) => electron_1.ipcRenderer.invoke('autosave:save', data),
     setTitle: (title) => electron_1.ipcRenderer.send('window:setTitle', title),
+    openExternal: (url) => electron_1.ipcRenderer.invoke('shell:openExternal', url),
 });

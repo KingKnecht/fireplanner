@@ -21,4 +21,5 @@ contextBridge.exposeInMainWorld('electron', {
   getConfig: () => ipcRenderer.invoke('config:get'),
   autosave: (data: any) => ipcRenderer.invoke('autosave:save', data),
   setTitle: (title: string) => ipcRenderer.send('window:setTitle', title),
+  openExternal: (url: string) => ipcRenderer.invoke('shell:openExternal', url),
 })

@@ -16,6 +16,7 @@ export interface ElectronAPI {
   getConfig: () => Promise<AppConfig>
   autosave: (data: any) => Promise<{ success: boolean; path?: string; error?: string }>
   setTitle: (title: string) => void
+  openExternal: (url: string) => Promise<void>
 }
 
 declare global {

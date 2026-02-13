@@ -127,6 +127,12 @@ ipcMain.on('window:setTitle', (_, title) => {
   }
 })
 
+// Open external URL in default browser
+ipcMain.handle('shell:openExternal', async (_, url) => {
+  const { shell } = require('electron')
+  await shell.openExternal(url)
+})
+
 // Autosave handler
 ipcMain.handle('autosave:save', async (_, data) => {
   console.log('[Autosave] Handler triggered, folder:', config.autosave.folder)
