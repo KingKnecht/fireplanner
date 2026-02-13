@@ -28,16 +28,8 @@ The application will launch with DevTools open. Your planning data is automatica
 - **User Management**: Add, rename, and remove team members
 - **Copy/Paste**: Duplicate projects with Ctrl+C, Ctrl+X, Ctrl+V
 - **Zoom Controls**: Scale the grid from 50% to 250% (Ctrl +/-)
-- ↩️*Undo/Redo**: Full history support for all changes
+- **Undo/Redo**: Full history support for all changes
 - **Auto-Save**: Changes are automatically persisted to disk
-
-## Tech Stack
-
-- **Electron**: Desktop application framework
-- **Vite**: Fast build tool and development server
-- **Vue 3**: Progressive JavaScript framework with Composition API
-- **TypeScript**: Type-safe JavaScript
-- **Pinia**: State management for Vue
 
 ## Development
 
@@ -45,25 +37,40 @@ The application will launch with DevTools open. Your planning data is automatica
 # Install dependencies
 npm install
 
-# Run in development mode (recommended)
-npm run dev
-
-# Alternative: Run with separate Electron/Vite processes
+#Start app
 npm run electron:dev
 ```
 
 The `dev` script starts both Vite and Electron together. Changes to Vue components will hot-reload automatically.
 
+## Testing
+
+Run the comprehensive test suite:
+
+```bash
+# Run tests in watch mode
+npm test
+
+# Run tests once
+npm run test:run
+
+# Run tests with UI
+npm run test:ui
+
+# Run tests with coverage report
+npm run test:coverage
+```
+
+**Test Coverage:**
+- 73 tests across utilities, stores, and components
+- Date utilities (weekday calculations, formatting)
+- Project utilities (duration with buffer/capacity)
+- Pinia store (CRUD operations, user management)
+- Vue components (rendering, interactions, drag & drop)
+
 ## Usage
 
-### Adding Users
-1. Click "Add User" button in the header
-2. Enter the user name
-3. Users appear as columns in the planner
-
-### Creating Projects
-- **Option 1**: Click "New Project" button in the header
-- **Managing Users
+### Managing Users
 - **Add User**: Click the "Add User" button in the header
 - **Rename User**: Double-click a user column header
 - **Delete User**: Click the × button on a user column (projects move to "Unassigned")
@@ -82,7 +89,21 @@ The `dev` script starts both Vite and Electron together. Changes to Vue componen
 - `Ctrl + +` — Zoom in
 - `Ctrl + -` — Zoom out
 - `Ctrl + 0` — Reset zoom
-- `Ctrl + Z for Production
+- `Ctrl + Z` — Undo
+- `Ctrl + Y` — Redo
+
+## Tech Stack
+
+- **[Electron](https://www.electronjs.org/)** — Desktop application framework
+- **[Vue 3](https://vuejs.org/)** — Progressive JavaScript framework with Composition API
+- **[Vite](https://vitejs.dev/)** — Fast build tool and dev server
+- **[TypeScript](https://www.typescriptlang.org/)** — Type-safe JavaScript
+- **[Pinia](https://pinia.vuejs.org/)** — State management with undo/redo support
+- **[PrimeVue](https://primevue.org/)** — UI component library
+- **[Vitest](https://vitest.dev/)** — Unit testing framework
+- **[Vue Test Utils](https://test-utils.vuejs.org/)** — Vue component testing
+
+## Building for Production
 
 ```bash
 # Build the application for your current platform
@@ -93,15 +114,6 @@ Distributables will be created in the `release/` directory:
 - **Linux**: AppImage
 - **Windows**: NSIS installer (requires Windows or Wine)
 - **macOS**: DMG (requires macOS)
-
-## Tech Stack
-
-- **[Electron](https://www.electronjs.org/)** — Desktop application framework
-- **[Vue 3](https://vuejs.org/)** — Progressive JavaScript framework with Composition API
-- **[Vite](https://vitejs.dev/)** — Fast build tool and dev server
-- **[TypeScript](https://www.typescriptlang.org/)** — Type-safe JavaScript
-- **[Pinia](https://pinia.vuejs.org/)** — State management with undo/redo support
-- **[PrimeVue](https://primevue.org/)** — UI component library
 
 ## License
 

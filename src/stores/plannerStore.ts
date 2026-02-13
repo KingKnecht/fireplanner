@@ -37,7 +37,7 @@ export const usePlannerStore = defineStore('planner', () => {
     users.value = users.value.filter(u => u.id !== userId)
   }
 
-  function addProject(project: Omit<Project, 'id' | 'endDate'>) {
+  function addProject(project: Omit<Project, 'id' | 'endDate' | 'zIndex'> & { zIndex?: number }) {
     const endDate = calculateProjectEndDate(
       project.startDate,
       project.durationDays,
