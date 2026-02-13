@@ -70,9 +70,9 @@ function handleClick() {
   emit('edit', props.project)
 }
 
-function handleEdit() {
-  emit('edit', props.project)
-}
+// function handleEdit() {
+//   emit('edit', props.project)
+// }
 
 function handleDragStart(event: DragEvent) {
   const target = event.currentTarget as HTMLElement

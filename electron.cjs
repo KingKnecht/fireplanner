@@ -41,11 +41,11 @@ function createWindow() {
   // Choose icon based on platform
   let iconPath
   if (process.platform === 'win32') {
-    iconPath = path.join(__dirname, 'assets/fire_planner.ico')
+    iconPath = path.join(__dirname, 'assets/fire_planner_256x256.ico')
   } else if (process.platform === 'darwin') {
     iconPath = path.join(__dirname, 'assets/fire_planner.icns') // You'll need this for macOS
   } else {
-    iconPath = path.join(__dirname, 'assets/fire_planner.png')
+    iconPath = path.join(__dirname, 'assets/fire_planner_512x512.png')
   }
   
   win = new BrowserWindow({
