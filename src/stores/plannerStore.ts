@@ -27,8 +27,14 @@ export const usePlannerStore = defineStore('planner', () => {
   }
 
   function removeUser(userId: string) {
+    // Move all projects from this user to unassigned
+    projects.value.forEach((project, index) => {
+      if (project.userId === userId) {
+        projects.value[index] = { ...project, userId: null }
+      }
+    })
+    // Remove the user
     users.value = users.value.filter(u => u.id !== userId)
-    projects.value = projects.value.filter(p => p.userId !== userId)
   }
 
   function addProject(project: Omit<Project, 'id' | 'endDate'>) {

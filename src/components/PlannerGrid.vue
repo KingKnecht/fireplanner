@@ -3,7 +3,14 @@
     <div class="grid-header">
       <div class="date-column header-cell"></div>
       <div v-for="user in users" :key="user.id" class="user-column header-cell">
-        {{ user.name }}
+        <span class="user-name">{{ user.name }}</span>
+        <button 
+          class="btn-delete-user" 
+          @click="handleDeleteUser(user.id, user.name)"
+          title="Delete user"
+        >
+          ×
+        </button>
       </div>
       <div v-if="showUnassigned" class="user-column header-cell unassigned-header">
         Unassigned
@@ -93,12 +100,19 @@ const emit = defineEmits<{
   createProject: [userId: string | null, startDate: Date]
   editProject: [project: Project]
   moveProject: [projectId: string, newUserId: string | null, newStartDate: Date]
+  deleteUser: [userId: string]
 }>()
 
 const cellHeight = 40
 const draggedProject = ref<Project | null>(null)
 const dragOffsetX = ref(0)
 const dragOffsetY = ref(0)
+
+function handleDeleteUser(userId: string, userName: string) {
+  if (confirm(`Delete user "${userName}"? All their projects will be moved to Unassigned.`)) {
+    emit('deleteUser', userId)
+  }
+}
 const plannerGridRef = ref<HTMLElement | null>(null)
 
 function scrollToToday() {
@@ -222,6 +236,36 @@ function handleDrop(event: DragEvent, userId: string | null) {
   font-size: 16px;
   border-right: 1px solid #34495e;
   text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+}
+
+.user-name {
+  flex: 1;
+}
+
+.btn-delete-user {
+  background: rgba(244, 67, 54, 0.8);
+  color: white;
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+  padding: 0;
+}
+
+.btn-delete-user:hover {
+  background: rgba(244, 67, 54, 1);
 }
 
 .grid-body {
@@ -253,6 +297,8 @@ function handleDrop(event: DragEvent, userId: string | null) {
   min-width: 200px;
   flex: 1;
   border-right: 1px solid #ddd;
+  position: relative;
+}
 
 .unassigned-header {
   background: #455a64 !important;
@@ -261,8 +307,6 @@ function handleDrop(event: DragEvent, userId: string | null) {
 
 .unassigned-column {
   background: #f9f9f9;
-}
-  position: relative;
 }
 
 .cell-container {
