@@ -249,6 +249,7 @@ function handleProjectCreate(data: {
   startDate: Date
   durationDays: number
   bufferPercent: number
+  capacityPercent: number
   color: string
   zIndex: number
 }) {

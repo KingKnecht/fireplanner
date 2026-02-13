@@ -95,7 +95,7 @@ watch(() => props.editingProject, (project) => {
   if (project) {
     form.value = {
       name: project.name,
-      userId: project.userId,
+      userId: project.userId || '',
       startDate: new Date(project.startDate),
       endDate: new Date(project.endDate),
       color: project.color

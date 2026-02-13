@@ -38,9 +38,20 @@ async function loadConfig() {
 }
 
 function createWindow() {
+  // Choose icon based on platform
+  let iconPath
+  if (process.platform === 'win32') {
+    iconPath = path.join(__dirname, 'assets/fire_planner.ico')
+  } else if (process.platform === 'darwin') {
+    iconPath = path.join(__dirname, 'assets/fire_planner.icns') // You'll need this for macOS
+  } else {
+    iconPath = path.join(__dirname, 'assets/fire_planner.png')
+  }
+  
   win = new BrowserWindow({
     width: 1400,
     height: 900,
+    icon: iconPath,
     webPreferences: {
       preload: path.join(__dirname, 'dist-electron/preload.js'),
       nodeIntegration: false,

@@ -156,7 +156,7 @@ const form = ref({
   durationDays: 1,
   bufferPercent: 0,
   capacityPercent: 100,
-  startDate: new Date() as Date | string,
+  startDate: new Date() as Date,
   color: COLOR_PALETTE[0],
   zIndex: 1
 })
