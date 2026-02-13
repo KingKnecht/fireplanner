@@ -420,7 +420,7 @@ function handleDrop(event: DragEvent, userId: string | null) {
 }
 
 .user-column {
-  width: 200px;
+  flex: 1;
   min-width: 200px;
   flex-shrink: 0;
   border-right: 1px solid #ddd;

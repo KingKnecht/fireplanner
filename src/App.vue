@@ -452,6 +452,7 @@ function handleDeleteUser(userId: string) {
   <div class="app">
     <header class="app-header">
       <div class="header-left">
+        <img src="/fire_planner_512x512.png" alt="FirePlanner Logo" class="app-logo" />
         <h1>FirePlanner</h1>
         <span v-if="currentFilePath" class="current-file">
           {{ currentFilePath.split('/').pop() }}
@@ -524,6 +525,12 @@ function handleDeleteUser(userId: string) {
   display: flex;
   align-items: center;
   gap: 16px;
+}
+
+.app-logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
 }
 
 .app-header h1 {
