@@ -73,13 +73,29 @@ onMounted(async () => {
     autosaveConfig.value = config.autosave
     console.log('[Autosave] Config loaded:', config.autosave)
   }
+  
+  // Add keyboard listener for Delete/Backspace
+  window.addEventListener('keydown', handleKeyDown)
 })
 
 onUnmounted(() => {
   if (autosaveTimer) {
     clearTimeout(autosaveTimer)
   }
+  window.removeEventListener('keydown', handleKeyDown)
 })
+
+function handleKeyDown(event: KeyboardEvent) {
+  // Delete selected project with Delete or Backspace key
+  if ((event.key === 'Delete' || event.key === 'Backspace') && selectedProject.value) {
+    // Prevent backspace from navigating back
+    const target = event.target as HTMLElement
+    if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') {
+      event.preventDefault()
+      handleProjectDelete()
+    }
+  }
+}
 
 // File operations
 function setDirty(dirty: boolean) {
@@ -355,6 +371,7 @@ function handleDeleteUser(userId: string) {
         :weekdays="store.weekdays"
         :get-projects-for-user="store.getProjectsForUser"
         :show-unassigned="true"
+        :selected-project-id="selectedProject?.id"
         @create-project="handleCreateProject"
         @edit-project="handleEditProject"
         @move-project="handleMoveProject"

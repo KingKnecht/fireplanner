@@ -18,6 +18,7 @@ const props = defineProps<{
   project: Project
   startDate: Date
   cellHeight: number
+  isSelected?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -53,7 +54,7 @@ const blockStyle = computed<CSSProperties>(() => {
     position: 'absolute',
     left: '2px',
     width: `calc(${props.project.capacityPercent}% - 4px)`,
-    border: '2px solid rgba(0, 0, 0, 0.3)',
+    border: props.isSelected ? '3px solid #2196F3' : '2px solid rgba(0, 0, 0, 0.3)',
     borderRadius: '4px',
     padding: '8px',
     display: 'flex',
@@ -62,7 +63,8 @@ const blockStyle = computed<CSSProperties>(() => {
     cursor: 'move',
     overflow: 'hidden',
     opacity: '0.85',
-    zIndex: props.project.zIndex
+    zIndex: props.project.zIndex,
+    boxShadow: props.isSelected ? '0 0 12px rgba(33, 150, 243, 0.5)' : 'none'
   }
 })
 
@@ -94,7 +96,7 @@ function handleDragEnd() {
 
 <style scoped>
 .project-block {
-  transition: box-shadow 0.2s, opacity 0.2s;
+  transition: box-shadow 0.2s, opacity 0.2s, border 0.2s;
 }
 
 .project-block:hover {

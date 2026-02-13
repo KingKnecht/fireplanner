@@ -45,6 +45,7 @@
             :project="project"
             :start-date="weekdays[0] || new Date()"
             :cell-height="cellHeight"
+            :is-selected="project.id === selectedProjectId"
             @edit="handleEditProject"
             @drag-start="handleProjectDragStart"
             @drag-end="handleProjectDragEnd"
@@ -73,6 +74,7 @@
             :project="project"
             :start-date="weekdays[0] || new Date()"
             :cell-height="cellHeight"
+            :is-selected="project.id === selectedProjectId"
             @edit="handleEditProject"
             @drag-start="handleProjectDragStart"
             @drag-end="handleProjectDragEnd"
@@ -94,6 +96,7 @@ const props = defineProps<{
   weekdays: Date[]
   getProjectsForUser: (userId: string | null) => Project[]
   showUnassigned?: boolean
+  selectedProjectId?: string | null
 }>()
 
 const emit = defineEmits<{
