@@ -4,11 +4,12 @@
     "intervalSeconds": 30,
     "folder": ""
   },
+  "workingDays": [1, 2, 3, 4, 5],
   "customProperties": [
     {
       "name": "OrderNumber",
       "type": "string",
-      "required": false
+      "required": true
     },
     {
       "name": "Deadline",
@@ -24,8 +25,7 @@
       "name": "KIP Factor",
       "type": "float",
       "required": false
-    }
-    ,
+    },
     {
       "name": "IsUrgent",
       "type": "boolean",

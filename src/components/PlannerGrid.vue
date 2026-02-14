@@ -33,7 +33,7 @@
 
     <div class="grid-body">
       <div class="date-column">
-        <div v-for="date in weekdays" :key="date.getTime()" class="date-cell" :class="{ 'friday-cell': isFriday(date), 'today-cell': isToday(date) }">
+        <div v-for="date in weekdays" :key="date.getTime()" class="date-cell" :class="{ 'friday-cell': isFriday(date), 'today-cell': isToday(date), 'weekend-cell': isWeekend(date) }">
           {{ formatDate(date) }}
         </div>
       </div>
@@ -49,7 +49,7 @@
             v-for="date in weekdays" 
             :key="date.getTime()" 
             class="grid-cell" 
-            :class="{ 'friday-cell': isFriday(date), 'today-cell': isToday(date) }"
+            :class="{ 'friday-cell': isFriday(date), 'today-cell': isToday(date), 'weekend-cell': isWeekend(date) }"
             @dblclick="handleCellDoubleClick(user.id, date)"
           ></div>
           
@@ -78,7 +78,7 @@
             v-for="date in weekdays" 
             :key="date.getTime()" 
             class="grid-cell" 
-            :class="{ 'friday-cell': isFriday(date), 'today-cell': isToday(date) }"
+            :class="{ 'friday-cell': isFriday(date), 'today-cell': isToday(date), 'weekend-cell': isWeekend(date) }"
             @dblclick="handleCellDoubleClick(null, date)"
           ></div>
           
@@ -103,7 +103,7 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import ProjectBlock from './ProjectBlock.vue'
 import type { User, Project } from '../types'
-import { formatDate } from '../utils/dateUtils'
+import { formatDate, isWeekend } from '../utils/dateUtils'
 
 const props = defineProps<{
   users: User[]
@@ -456,6 +456,10 @@ function handleDrop(event: DragEvent, userId: string | null) {
   border-bottom: 3px solid #95a5a6 !important;
 }
 
+.weekend-cell {
+  background: #f5f5f5 !important;
+}
+
 .today-cell {
   background: #fffacd !important;
 }
@@ -510,6 +514,10 @@ function handleDrop(event: DragEvent, userId: string | null) {
 
 .dark-mode .friday-cell {
   border-bottom: 3px solid #4a4a4a !important;
+}
+
+.dark-mode .weekend-cell {
+  background: #252525 !important;
 }
 
 .dark-mode .today-cell {

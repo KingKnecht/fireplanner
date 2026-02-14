@@ -17,6 +17,7 @@ async function loadConfig() {
       intervalSeconds: 30,
       folder: path.join(app.getPath('userData'), 'autosave')
     },
+    workingDays: [1, 2, 3, 4, 5],
     customProperties: []
   }
   
@@ -30,6 +31,7 @@ async function loadConfig() {
         ...bundledConfig.autosave,
         folder: bundledConfig.autosave?.folder || path.join(app.getPath('userData'), 'autosave')
       },
+      workingDays: bundledConfig.workingDays || [1, 2, 3, 4, 5],
       customProperties: bundledConfig.customProperties || []
     }
   } catch (error) {
@@ -46,6 +48,11 @@ async function loadConfig() {
     // If folder is empty, use default
     if (!loadedConfig.autosave?.folder) {
       loadedConfig.autosave.folder = defaultConfig.autosave.folder
+    }
+    
+    // Merge workingDays from bundled config if not present in user config
+    if (!loadedConfig.workingDays) {
+      loadedConfig.workingDays = defaultConfig.workingDays
     }
     
     // Merge customProperties from bundled config if not present in user config

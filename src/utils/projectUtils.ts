@@ -1,3 +1,5 @@
+import { isWorkingDay } from './dateUtils'
+
 export const COLOR_PALETTE = [
   '#EF5350', // Red
   '#EC407A', // Pink
@@ -21,7 +23,8 @@ export function calculateProjectEndDate(
   startDate: Date,
   durationDays: number,
   bufferPercent: number,
-  capacityPercent: number = 100
+  capacityPercent: number = 100,
+  workingDays: number[] = [1, 2, 3, 4, 5]
 ): Date {
   // Calculate total duration with buffer
   const totalDuration = durationDays * (1 + bufferPercent / 100)
@@ -32,13 +35,13 @@ export function calculateProjectEndDate(
   // Round up to nearest half day
   const roundedDuration = Math.ceil(adjustedDuration * 2) / 2
   
-  // Calculate end date (weekdays only)
+  // Calculate end date (working days only)
   const endDate = new Date(startDate)
   let daysAdded = 0
   
   while (daysAdded < roundedDuration) {
-    // Skip weekends
-    if (endDate.getDay() !== 0 && endDate.getDay() !== 6) {
+    // Skip non-working days
+    if (isWorkingDay(endDate, workingDays)) {
       daysAdded += 1
     }
     if (daysAdded < roundedDuration) {
@@ -49,12 +52,12 @@ export function calculateProjectEndDate(
   return endDate
 }
 
-export function calculateWorkdayDuration(startDate: Date, endDate: Date): number {
+export function calculateWorkdayDuration(startDate: Date, endDate: Date, workingDays: number[] = [1, 2, 3, 4, 5]): number {
   let days = 0
   const current = new Date(startDate)
   
   while (current <= endDate) {
-    if (current.getDay() !== 0 && current.getDay() !== 6) {
+    if (isWorkingDay(current, workingDays)) {
       days++
     }
     current.setDate(current.getDate() + 1)

@@ -12,9 +12,11 @@ export const usePlannerStore = defineStore('planner', () => {
 
   const startDate = ref(new Date(2026, 0, 1)) // January 1, 2026
   const endDate = ref(new Date(2026, 11, 31)) // December 31, 2026
+  
+  const workingDays = ref<number[]>([1, 2, 3, 4, 5]) // Monday-Friday by default
 
   const weekdays = computed(() => {
-    return getWeekdaysBetween(startDate.value, endDate.value)
+    return getWeekdaysBetween(startDate.value, endDate.value, workingDays.value)
   })
 
   function addUser(name: string, color?: string) {
@@ -42,7 +44,8 @@ export const usePlannerStore = defineStore('planner', () => {
       project.startDate,
       project.durationDays,
       project.bufferPercent,
-      project.capacityPercent
+      project.capacityPercent,
+      workingDays.value
     )
     
     // Auto-expand date range if project is outside current range
@@ -89,7 +92,8 @@ export const usePlannerStore = defineStore('planner', () => {
           updatedProject.startDate,
           updatedProject.durationDays,
           updatedProject.bufferPercent,
-          updatedProject.capacityPercent
+          updatedProject.capacityPercent,
+          workingDays.value
         )
       }
       
@@ -150,6 +154,7 @@ export const usePlannerStore = defineStore('planner', () => {
     projects,
     startDate,
     endDate,
+    workingDays,
     weekdays,
     addUser,
     removeUser,

@@ -117,8 +117,15 @@ onMounted(async () => {
     const config = await window.electron.getConfig()
     autosaveConfig.value = config.autosave
     customPropertyDefinitions.value = config.customProperties || []
+    
+    // Set working days from config
+    if (config.workingDays) {
+      store.workingDays = config.workingDays
+    }
+    
     console.log('[Autosave] Config loaded:', config.autosave)
     console.log('[CustomProperties] Definitions loaded:', config.customProperties)
+    console.log('[WorkingDays] Loaded:', config.workingDays)
   }
   
   // Add keyboard listener for Delete/Backspace
@@ -267,7 +274,14 @@ function handleNew() {
       window.electron.reloadConfig().then(result => {
         if (result.success && result.config) {
           customPropertyDefinitions.value = result.config.customProperties || []
+          
+          // Reset working days to config default
+          if (result.config.workingDays) {
+            store.workingDays = result.config.workingDays
+          }
+          
           console.log('[CustomProperties] Reloaded from config.json:', result.config.customProperties)
+          console.log('[WorkingDays] Reset to config default:', result.config.workingDays)
         }
       })
     }
@@ -315,7 +329,8 @@ async function handleSave() {
     const result = await window.electron.saveFile({
       users: serializedUsers,
       projects: serializedProjects,
-      customPropertyDefinitions: serializedCustomProps
+      customPropertyDefinitions: serializedCustomProps,
+      workingDays: [...store.workingDays]
     })
     if (result.success) {
       if (result.filePath) {
@@ -364,6 +379,13 @@ async function handleLoad() {
         customPropertyDefinitions.value = result.data.customPropertyDefinitions
         console.log('[CustomProperties] Loaded definitions from file:', result.data.customPropertyDefinitions)
       }
+      
+      // Load working days from file if present
+      if (result.data.workingDays) {
+        store.workingDays = result.data.workingDays
+        console.log('[WorkingDays] Loaded from file:', result.data.workingDays)
+      }
+      
       // Clear selection after load
       selectedProject.value = null
       setDirty(false)
@@ -445,7 +467,8 @@ async function performAutosave() {
     const result = await window.electron.autosave({
       users: serializedUsers,
       projects: serializedProjects,
-      customPropertyDefinitions: serializedCustomProps
+      customPropertyDefinitions: serializedCustomProps,
+      workingDays: [...store.workingDays]
     })
     
     if (result.success) {
@@ -628,6 +651,7 @@ function handleDeleteUser(userId: string) {
         :selected-project="selectedProject"
         :new-project-data="newProjectData"
         :custom-property-definitions="customPropertyDefinitions"
+        :working-days="store.workingDays"
         @create="handleProjectCreate"
         @update="handleProjectUpdate"
         @update-z-index="handleUpdateZIndex"

@@ -8,6 +8,7 @@ export interface AutosaveConfig {
 
 export interface AppConfig {
   autosave: AutosaveConfig
+  workingDays?: number[]
   customProperties?: CustomPropertyDefinition[]
 }
 

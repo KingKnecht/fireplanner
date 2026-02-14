@@ -3,12 +3,17 @@ export function isWeekend(date: Date): boolean {
   return day === 0 || day === 6
 }
 
-export function getWeekdaysBetween(startDate: Date, endDate: Date): Date[] {
+export function isWorkingDay(date: Date, workingDays: number[] = [1, 2, 3, 4, 5]): boolean {
+  const day = date.getDay()
+  return workingDays.includes(day)
+}
+
+export function getWeekdaysBetween(startDate: Date, endDate: Date, workingDays: number[] = [1, 2, 3, 4, 5]): Date[] {
   const dates: Date[] = []
   const current = new Date(startDate)
   
   while (current <= endDate) {
-    if (!isWeekend(current)) {
+    if (isWorkingDay(current, workingDays)) {
       dates.push(new Date(current))
     }
     current.setDate(current.getDate() + 1)

@@ -190,6 +190,7 @@ const props = defineProps<{
   selectedProject: Project | null
   newProjectData: { userId: string | null; startDate: Date } | null
   customPropertyDefinitions: CustomPropertyDefinition[]
+  workingDays: number[]
 }>()
 
 const emit = defineEmits<{
@@ -281,7 +282,8 @@ const calculatedEndDate = computed(() => {
     new Date(form.value.startDate),
     form.value.durationDays,
     form.value.bufferPercent,
-    form.value.capacityPercent
+    form.value.capacityPercent,
+    props.workingDays
   )
 })
 
