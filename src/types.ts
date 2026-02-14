@@ -4,6 +4,14 @@ export interface User {
   color?: string
 }
 
+export type CustomPropertyType = 'string' | 'number' | 'boolean' | 'Date'
+
+export interface CustomPropertyDefinition {
+  name: string
+  type: CustomPropertyType
+  required: boolean
+}
+
 export interface Project {
   id: string
   name: string
@@ -15,6 +23,7 @@ export interface Project {
   capacityPercent: number  // 33, 50, 75, 100 - daily capacity available
   color: string
   zIndex: number  // z-depth for overlapping projects
+  customProperties?: Record<string, string | number | boolean | Date | null>
 }
 
 export interface DateCell {

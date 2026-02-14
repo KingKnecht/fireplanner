@@ -1,0 +1,29 @@
+{
+  "autosave": {
+    "enabled": true,
+    "intervalSeconds": 30,
+    "folder": ""
+  },
+  "customProperties": [
+    {
+      "name": "OrderNumber",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "Deadline",
+      "type": "Date",
+      "required": false
+    },
+    {
+      "name": "Priority",
+      "type": "number",
+      "required": false
+    },
+    {
+      "name": "IsUrgent",
+      "type": "boolean",
+      "required": false
+    }
+  ]
+}

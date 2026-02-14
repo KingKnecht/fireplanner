@@ -16,7 +16,8 @@ async function loadConfig() {
       enabled: true,
       intervalSeconds: 30,
       folder: path.join(app.getPath('userData'), 'autosave')
-    }
+    },
+    customProperties: []
   }
   
   try {
@@ -28,7 +29,8 @@ async function loadConfig() {
       autosave: {
         ...bundledConfig.autosave,
         folder: bundledConfig.autosave?.folder || path.join(app.getPath('userData'), 'autosave')
-      }
+      },
+      customProperties: bundledConfig.customProperties || []
     }
   } catch (error) {
     // Bundled config doesn't exist or is invalid, use hardcoded defaults
@@ -44,6 +46,11 @@ async function loadConfig() {
     // If folder is empty, use default
     if (!loadedConfig.autosave?.folder) {
       loadedConfig.autosave.folder = defaultConfig.autosave.folder
+    }
+    
+    // Merge customProperties from bundled config if not present in user config
+    if (!loadedConfig.customProperties) {
+      loadedConfig.customProperties = defaultConfig.customProperties
     }
     
     config = loadedConfig

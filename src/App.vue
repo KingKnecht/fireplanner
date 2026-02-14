@@ -6,7 +6,7 @@ import PlannerGrid from './components/PlannerGrid.vue'
 import ProjectEditorPanel from './components/ProjectEditorPanel.vue'
 import UserDialog from './components/UserDialog.vue'
 import { usePlannerStore } from './stores/plannerStore'
-import type { Project } from './types'
+import type { Project, CustomPropertyDefinition } from './types'
 import type { AppConfig } from './electron'
 
 const toast = useToast()
@@ -29,6 +29,9 @@ let autosaveTimer: NodeJS.Timeout | null = null
 const isDirty = ref(false)
 const currentFilePath = ref<string | null>(null)
 const isLoadingFile = ref(false)
+
+// Custom properties
+const customPropertyDefinitions = ref<CustomPropertyDefinition[]>([])
 
 // Dark mode
 const isDarkMode = ref(false)
@@ -113,7 +116,9 @@ onMounted(async () => {
     // Load autosave config
     const config = await window.electron.getConfig()
     autosaveConfig.value = config.autosave
+    customPropertyDefinitions.value = config.customProperties || []
     console.log('[Autosave] Config loaded:', config.autosave)
+    console.log('[CustomProperties] Definitions loaded:', config.customProperties)
   }
   
   // Add keyboard listener for Delete/Backspace
@@ -175,7 +180,8 @@ function handleCopy() {
     bufferPercent: selectedProject.value.bufferPercent,
     capacityPercent: selectedProject.value.capacityPercent,
     color: selectedProject.value.color,
-    zIndex: selectedProject.value.zIndex
+    zIndex: selectedProject.value.zIndex,
+    customProperties: selectedProject.value.customProperties
   }
   isCutOperation.value = false
   cutProjectId.value = null
@@ -195,7 +201,8 @@ function handleCut() {
     bufferPercent: selectedProject.value.bufferPercent,
     capacityPercent: selectedProject.value.capacityPercent,
     color: selectedProject.value.color,
-    zIndex: selectedProject.value.zIndex
+    zIndex: selectedProject.value.zIndex,
+    customProperties: selectedProject.value.customProperties
   }
   isCutOperation.value = true
   cutProjectId.value = selectedProject.value.id
@@ -214,7 +221,8 @@ function handlePaste() {
     bufferPercent: clipboard.value.bufferPercent,
     capacityPercent: clipboard.value.capacityPercent,
     color: clipboard.value.color,
-    zIndex: clipboard.value.zIndex
+    zIndex: clipboard.value.zIndex,
+    customProperties: clipboard.value.customProperties
   })
   
   // If it was a cut operation, delete the original project
@@ -272,7 +280,13 @@ async function handleSave() {
       bufferPercent: p.bufferPercent,
       capacityPercent: p.capacityPercent,
       color: p.color,
-      zIndex: p.zIndex
+      zIndex: p.zIndex,
+      customProperties: p.customProperties ? Object.fromEntries(
+        Object.entries(p.customProperties).map(([key, value]) => [
+          key,
+          value instanceof Date ? value.toISOString() : value
+        ])
+      ) : {}
     }))
     
     const serializedUsers = store.users.map(u => ({
@@ -315,7 +329,15 @@ async function handleLoad() {
         ...p,
         startDate: new Date(p.startDate),
         endDate: new Date(p.endDate),
-        capacityPercent: p.capacityPercent ?? 100
+        capacityPercent: p.capacityPercent ?? 100,
+        customProperties: p.customProperties ? Object.fromEntries(
+          Object.entries(p.customProperties).map(([key, value]) => [
+            key,
+            typeof value === 'string' && !isNaN(Date.parse(value)) && String(value).includes('T') 
+              ? new Date(value)
+              : value
+          ])
+        ) : {}
       }))
       // Clear selection after load
       selectedProject.value = null
@@ -373,7 +395,13 @@ async function performAutosave() {
       bufferPercent: p.bufferPercent,
       capacityPercent: p.capacityPercent,
       color: p.color,
-      zIndex: p.zIndex
+      zIndex: p.zIndex,
+      customProperties: p.customProperties ? Object.fromEntries(
+        Object.entries(p.customProperties).map(([key, value]) => [
+          key,
+          value instanceof Date ? value.toISOString() : value
+        ])
+      ) : {}
     }))
     
     const serializedUsers = store.users.map(u => ({
@@ -566,6 +594,7 @@ function handleDeleteUser(userId: string) {
         :users="store.users"
         :selected-project="selectedProject"
         :new-project-data="newProjectData"
+        :custom-property-definitions="customPropertyDefinitions"
         @create="handleProjectCreate"
         @update="handleProjectUpdate"
         @update-z-index="handleUpdateZIndex"

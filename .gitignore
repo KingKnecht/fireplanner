@@ -15,7 +15,6 @@ dist-ssr
 *.local
 
 # Config and autosave
-config.json
 *.fpj
 
 # Editor directories and files

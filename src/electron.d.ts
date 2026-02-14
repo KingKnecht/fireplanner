@@ -1,3 +1,5 @@
+import type { CustomPropertyDefinition } from './types'
+
 export interface AutosaveConfig {
   enabled: boolean
   intervalSeconds: number
@@ -6,6 +8,7 @@ export interface AutosaveConfig {
 
 export interface AppConfig {
   autosave: AutosaveConfig
+  customProperties?: CustomPropertyDefinition[]
 }
 
 export interface ElectronAPI {

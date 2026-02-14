@@ -57,7 +57,8 @@ export const usePlannerStore = defineStore('planner', () => {
       ...project,
       id: nanoid(10),
       endDate: projectEndDate,
-      zIndex: project.zIndex ?? 1
+      zIndex: project.zIndex ?? 1,
+      customProperties: project.customProperties || {}
     }
     projects.value.push(newProject)
     return newProject
@@ -78,6 +79,7 @@ export const usePlannerStore = defineStore('planner', () => {
         capacityPercent: updates.capacityPercent ?? currentProject.capacityPercent,
         color: updates.color ?? currentProject.color,
         zIndex: updates.zIndex !== undefined ? updates.zIndex : currentProject.zIndex,
+        customProperties: updates.customProperties !== undefined ? updates.customProperties : currentProject.customProperties,
         endDate: currentProject.endDate
       }
       
@@ -118,7 +120,17 @@ export const usePlannerStore = defineStore('planner', () => {
         projects.value[index] = {
           ...project,
           startDate: new Date(project.startDate),
-          endDate: new Date(project.endDate)
+          endDate: new Date(project.endDate),
+          // Fix custom property Dates that may have been stringified
+          customProperties: project.customProperties ? 
+            Object.fromEntries(
+              Object.entries(project.customProperties).map(([key, value]) => [
+                key,
+                typeof value === 'string' && !isNaN(Date.parse(value)) && value.includes('T') 
+                  ? new Date(value)
+                  : value
+              ])
+            ) : {}
         }
       }
     })
