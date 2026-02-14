@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import Toast from 'primevue/toast'
 import PlannerGrid from './components/PlannerGrid.vue'
@@ -126,6 +126,13 @@ onMounted(async () => {
     console.log('[Autosave] Config loaded:', config.autosave)
     console.log('[CustomProperties] Definitions loaded:', config.customProperties)
     console.log('[WorkingDays] Loaded:', config.workingDays)
+    
+    // Scroll to today after initial config is loaded
+    nextTick(() => {
+      nextTick(() => {
+        plannerGridRef.value?.scrollToToday()
+      })
+    })
   }
   
   // Add keyboard listener for Delete/Backspace
@@ -282,6 +289,13 @@ function handleNew() {
           
           console.log('[CustomProperties] Reloaded from config.json:', result.config.customProperties)
           console.log('[WorkingDays] Reset to config default:', result.config.workingDays)
+          
+          // Scroll to today after working days are updated
+          nextTick(() => {
+            nextTick(() => {
+              plannerGridRef.value?.scrollToToday()
+            })
+          })
         }
       })
     }
@@ -390,10 +404,12 @@ async function handleLoad() {
       selectedProject.value = null
       setDirty(false)
       isLoadingFile.value = false
-      // Scroll to today after loading
-      setTimeout(() => {
-        plannerGridRef.value?.scrollToToday()
-      }, 100)
+      // Scroll to today after loading and working days are updated
+      nextTick(() => {
+        nextTick(() => {
+          plannerGridRef.value?.scrollToToday()
+        })
+      })
     }
   } catch (error) {
     isLoadingFile.value = false
@@ -674,6 +690,7 @@ function handleDeleteUser(userId: string) {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background-color: #f5f5f5;
 }
 
 .app-header {

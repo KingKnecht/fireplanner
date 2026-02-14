@@ -85,11 +85,18 @@ function createWindow() {
     width: 1400,
     height: 900,
     icon: iconPath,
+    show: false,
+    backgroundColor: '#f5f5f5',
     webPreferences: {
       preload: path.join(__dirname, 'dist-electron/preload.js'),
       nodeIntegration: false,
       contextIsolation: true,
     },
+  })
+
+  // Show window when ready to prevent white flash
+  win.once('ready-to-show', () => {
+    win.show()
   })
 
   // Prevent close if there are unsaved changes
@@ -176,6 +183,10 @@ ipcMain.on('window:setTitle', (_, title) => {
 // Update dark mode state
 ipcMain.on('window:setDarkMode', (_, darkMode) => {
   isDarkMode = darkMode
+  // Update window background color to match theme
+  if (win) {
+    win.setBackgroundColor(darkMode ? '#1a1a1a' : '#f5f5f5')
+  }
   createMenu()
 })
 
