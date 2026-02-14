@@ -7,6 +7,8 @@ const isDev = process.env.NODE_ENV === 'development'
 let win = null
 let config = null
 let isDarkMode = false
+let recentFiles = []  // Store recent file paths
+const MAX_RECENT_FILES = 10
 
 // Load or create config
 async function loadConfig() {
@@ -67,6 +69,54 @@ async function loadConfig() {
     await fs.writeFile(configPath, JSON.stringify(config, null, 2), 'utf-8')
   }
   return config
+}
+
+// Load recent files from storage
+async function loadRecentFiles() {
+  try {
+    const recentFilesPath = path.join(app.getPath('userData'), 'recent-files.json')
+    const data = await fs.readFile(recentFilesPath, 'utf-8')
+    recentFiles = JSON.parse(data)
+    // Filter out files that no longer exist
+    const existingFiles = []
+    for (const filePath of recentFiles) {
+      try {
+        await fs.access(filePath)
+        existingFiles.push(filePath)
+      } catch {
+        // File doesn't exist anymore, skip it
+      }
+    }
+    recentFiles = existingFiles
+  } catch (error) {
+    // File doesn't exist or is invalid, start with empty list
+    recentFiles = []
+  }
+}
+
+// Save recent files to storage
+async function saveRecentFiles() {
+  try {
+    const recentFilesPath = path.join(app.getPath('userData'), 'recent-files.json')
+    await fs.writeFile(recentFilesPath, JSON.stringify(recentFiles, null, 2), 'utf-8')
+  } catch (error) {
+    console.error('[RecentFiles] Failed to save:', error)
+  }
+}
+
+// Add a file to recent files list
+async function addToRecentFiles(filePath) {
+  // Remove if already in list
+  recentFiles = recentFiles.filter(f => f !== filePath)
+  // Add to front
+  recentFiles.unshift(filePath)
+  // Limit to MAX_RECENT_FILES
+  if (recentFiles.length > MAX_RECENT_FILES) {
+    recentFiles = recentFiles.slice(0, MAX_RECENT_FILES)
+  }
+  await saveRecentFiles()
+  // Update menu to show new recent files
+  createMenu()
 }
 
 function createWindow() {
@@ -137,6 +187,7 @@ ipcMain.handle('dialog:saveFile', async (_, data) => {
 
   if (!result.canceled && result.filePath) {
     await fs.writeFile(result.filePath, JSON.stringify(data, null, 2), 'utf-8')
+    await addToRecentFiles(result.filePath)
     return { success: true, filePath: result.filePath }
   }
   return { success: false }
@@ -151,9 +202,22 @@ ipcMain.handle('dialog:openFile', async () => {
 
   if (!result.canceled && result.filePaths.length > 0) {
     const content = await fs.readFile(result.filePaths[0], 'utf-8')
+    await addToRecentFiles(result.filePaths[0])
     return { success: true, data: JSON.parse(content), filePath: result.filePaths[0] }
   }
   return { success: false }
+})
+
+// Open a specific file path (for recent files)
+ipcMain.handle('dialog:openFilePath', async (_, filePath) => {
+  try {
+    const content = await fs.readFile(filePath, 'utf-8')
+    await addToRecentFiles(filePath)
+    return { success: true, data: JSON.parse(content), filePath }
+  } catch (error) {
+    console.error('[OpenFile] Failed to open:', error)
+    return { success: false, error: error.message }
+  }
 })
 
 // Get config
@@ -257,6 +321,16 @@ function showAboutDialog() {
 }
 
 function createMenu() {
+  // Build recent files submenu
+  const recentFilesSubmenu = recentFiles.length > 0
+    ? recentFiles.map(filePath => ({
+        label: path.basename(filePath),
+        click: () => {
+          win?.webContents.send('menu:openRecentFile', filePath)
+        }
+      }))
+    : [{ label: 'No recent files', enabled: false }]
+
   const template = [
     {
       label: 'File',
@@ -282,6 +356,11 @@ function createMenu() {
           click: () => {
             win?.webContents.send('menu:open')
           }
+        },
+        { type: 'separator' },
+        {
+          label: 'Recent Files',
+          submenu: recentFilesSubmenu
         },
         { type: 'separator' },
         { role: 'quit' }
@@ -346,8 +425,9 @@ function createMenu() {
 }
 
 app.on('ready', async () => {
-  // Load config
+  // Load config and recent files
   await loadConfig()
+  await loadRecentFiles()
   
   // Give Vite dev server time to start if in dev mode
   if (isDev) {

@@ -109,6 +109,7 @@ onMounted(async () => {
     window.electron.receive('menu:new', handleNew)
     window.electron.receive('menu:save', handleSave)
     window.electron.receive('menu:open', handleLoad)
+    window.electron.receive('menu:openRecentFile', handleOpenRecentFile)
     window.electron.receive('menu:undo', handleUndo)
     window.electron.receive('menu:redo', handleRedo)
     window.electron.receive('menu:toggleDarkMode', toggleDarkMode)
@@ -415,6 +416,77 @@ async function handleLoad() {
     isLoadingFile.value = false
     console.error('Failed to load:', error)
     alert('Failed to load file: ' + error)
+  }
+}
+
+// Open a recent file by path
+async function handleOpenRecentFile(filePath: string) {
+  if (!window.electron?.openFilePath) return
+
+  try {
+    const result = await window.electron.openFilePath(filePath)
+    if (result.success && result.data) {
+      isLoadingFile.value = true
+      // Store the opened file path
+      if (result.filePath) {
+        currentFilePath.value = result.filePath
+      }
+      // Load users and projects from file
+      store.users = result.data.users || []
+      store.projects = (result.data.projects || []).map((p: any) => ({
+        ...p,
+        startDate: new Date(p.startDate),
+        endDate: new Date(p.endDate),
+        capacityPercent: p.capacityPercent ?? 100,
+        customProperties: p.customProperties ? Object.fromEntries(
+          Object.entries(p.customProperties).map(([key, value]) => [
+            key,
+            typeof value === 'string' && !isNaN(Date.parse(value)) && String(value).includes('T') 
+              ? new Date(value)
+              : value
+          ])
+        ) : {}
+      }))
+      
+      // Load custom property definitions from file if present
+      if (result.data.customPropertyDefinitions) {
+        customPropertyDefinitions.value = result.data.customPropertyDefinitions
+        console.log('[CustomProperties] Loaded definitions from file:', result.data.customPropertyDefinitions)
+      }
+      
+      // Load working days from file if present
+      if (result.data.workingDays) {
+        store.workingDays = result.data.workingDays
+        console.log('[WorkingDays] Loaded from file:', result.data.workingDays)
+      }
+      
+      // Clear selection after load
+      selectedProject.value = null
+      setDirty(false)
+      isLoadingFile.value = false
+      // Scroll to today after loading and working days are updated
+      nextTick(() => {
+        nextTick(() => {
+          plannerGridRef.value?.scrollToToday()
+        })
+      })
+    } else if (result.error) {
+      toast.add({
+        severity: 'error',
+        summary: 'Failed to open file',
+        detail: result.error,
+        life: 5000
+      })
+    }
+  } catch (error) {
+    isLoadingFile.value = false
+    console.error('Failed to load recent file:', error)
+    toast.add({
+      severity: 'error',
+      summary: 'Failed to open recent file',
+      detail: String(error),
+      life: 5000
+    })
   }
 }
 

@@ -11,13 +11,14 @@ contextBridge.exposeInMainWorld('electron', {
     }
   },
   receive: (channel: string, func: (...args: any[]) => void) => {
-    const validChannels = ['fromMain', 'main-process-message', 'menu:new', 'menu:save', 'menu:open', 'menu:undo', 'menu:redo', 'menu:toggleDarkMode']
+    const validChannels = ['fromMain', 'main-process-message', 'menu:new', 'menu:save', 'menu:open', 'menu:openRecentFile', 'menu:undo', 'menu:redo', 'menu:toggleDarkMode']
     if (validChannels.includes(channel)) {
       ipcRenderer.on(channel, (event, ...args) => func(...args))
     }
   },
   saveFile: (data: any) => ipcRenderer.invoke('dialog:saveFile', data),
   openFile: () => ipcRenderer.invoke('dialog:openFile'),
+  openFilePath: (filePath: string) => ipcRenderer.invoke('dialog:openFilePath', filePath),
   getConfig: () => ipcRenderer.invoke('config:get'),
   reloadConfig: () => ipcRenderer.invoke('config:reload'),
   autosave: (data: any) => ipcRenderer.invoke('autosave:save', data),
