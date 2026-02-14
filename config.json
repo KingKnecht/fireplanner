@@ -8,7 +8,7 @@
     {
       "name": "OrderNumber",
       "type": "string",
-      "required": true
+      "required": false
     },
     {
       "name": "Deadline",
@@ -20,6 +20,12 @@
       "type": "number",
       "required": false
     },
+    {
+      "name": "KIP Factor",
+      "type": "float",
+      "required": false
+    }
+    ,
     {
       "name": "IsUrgent",
       "type": "boolean",

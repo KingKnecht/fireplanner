@@ -147,6 +147,18 @@ ipcMain.handle('config:get', async () => {
   return config
 })
 
+// Reload config from disk
+ipcMain.handle('config:reload', async () => {
+  try {
+    await loadConfig()
+    console.log('[Config] Reloaded from disk')
+    return { success: true, config }
+  } catch (error) {
+    console.error('[Config] Failed to reload:', error)
+    return { success: false, error: error.message }
+  }
+})
+
 // Set window title
 ipcMain.on('window:setTitle', (_, title) => {
   if (win) {

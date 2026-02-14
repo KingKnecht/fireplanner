@@ -108,6 +108,17 @@
             v-else-if="propDef.type === 'number'"
             v-model.number="form.customProperties[propDef.name]"
             type="number"
+            step="1"
+            :placeholder="`Enter ${propDef.name}`"
+            :class="{ 'invalid-field': isPropertyInvalid(propDef.name) }"
+          />
+          
+          <!-- Float input -->
+          <input
+            v-else-if="propDef.type === 'float'"
+            v-model.number="form.customProperties[propDef.name]"
+            type="number"
+            step="any"
             :placeholder="`Enter ${propDef.name}`"
             :class="{ 'invalid-field': isPropertyInvalid(propDef.name) }"
           />
@@ -221,6 +232,7 @@ function initializeCustomProperties(): Record<string, string | number | boolean 
         customProps[propDef.name] = ''
         break
       case 'number':
+      case 'float':
         customProps[propDef.name] = null
         break
       case 'boolean':

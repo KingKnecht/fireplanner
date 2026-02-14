@@ -4,7 +4,7 @@ export interface User {
   color?: string
 }
 
-export type CustomPropertyType = 'string' | 'number' | 'boolean' | 'Date'
+export type CustomPropertyType = 'string' | 'number' | 'float' | 'boolean' | 'Date'
 
 export interface CustomPropertyDefinition {
   name: string

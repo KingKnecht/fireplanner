@@ -261,6 +261,16 @@ function handleNew() {
     currentFilePath.value = null
     setDirty(false)
     isLoadingFile.value = false
+    
+    // Reload config from disk to get latest custom property definitions
+    if (window.electron?.reloadConfig) {
+      window.electron.reloadConfig().then(result => {
+        if (result.success && result.config) {
+          customPropertyDefinitions.value = result.config.customProperties || []
+          console.log('[CustomProperties] Reloaded from config.json:', result.config.customProperties)
+        }
+      })
+    }
   }
 }
 
@@ -295,9 +305,17 @@ async function handleSave() {
       color: u.color
     }))
     
+    // Serialize custom property definitions to plain objects
+    const serializedCustomProps = customPropertyDefinitions.value.map(def => ({
+      name: def.name,
+      type: def.type,
+      required: def.required
+    }))
+    
     const result = await window.electron.saveFile({
       users: serializedUsers,
-      projects: serializedProjects
+      projects: serializedProjects,
+      customPropertyDefinitions: serializedCustomProps
     })
     if (result.success) {
       if (result.filePath) {
@@ -339,6 +357,13 @@ async function handleLoad() {
           ])
         ) : {}
       }))
+      
+      // Load custom property definitions from file if present
+      // Merge with existing definitions (file definitions take precedence for this session)
+      if (result.data.customPropertyDefinitions) {
+        customPropertyDefinitions.value = result.data.customPropertyDefinitions
+        console.log('[CustomProperties] Loaded definitions from file:', result.data.customPropertyDefinitions)
+      }
       // Clear selection after load
       selectedProject.value = null
       setDirty(false)
@@ -410,9 +435,17 @@ async function performAutosave() {
       color: u.color
     }))
     
+    // Serialize custom property definitions to plain objects
+    const serializedCustomProps = customPropertyDefinitions.value.map(def => ({
+      name: def.name,
+      type: def.type,
+      required: def.required
+    }))
+    
     const result = await window.electron.autosave({
       users: serializedUsers,
-      projects: serializedProjects
+      projects: serializedProjects,
+      customPropertyDefinitions: serializedCustomProps
     })
     
     if (result.success) {
