@@ -15,7 +15,8 @@ export interface AppConfig {
 export interface ElectronAPI {
   send: (channel: string, data: any) => void
   receive: (channel: string, func: (...args: any[]) => void) => void
-  saveFile: (data: any) => Promise<{ success: boolean; filePath?: string }>
+  saveFile: (data: any, currentFilePath?: string | null) => Promise<{ success: boolean; filePath?: string }>
+  saveFileAs: (data: any) => Promise<{ success: boolean; filePath?: string }>
   openFile: () => Promise<{ success: boolean; data?: any; filePath?: string }>
   openFilePath: (filePath: string) => Promise<{ success: boolean; data?: any; filePath?: string; error?: string }>
   getConfig: () => Promise<AppConfig>

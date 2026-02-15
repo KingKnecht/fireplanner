@@ -108,6 +108,7 @@ onMounted(async () => {
   if (window.electron) {
     window.electron.receive('menu:new', handleNew)
     window.electron.receive('menu:save', handleSave)
+    window.electron.receive('menu:saveAs', handleSaveAs)
     window.electron.receive('menu:open', handleLoad)
     window.electron.receive('menu:openRecentFile', handleOpenRecentFile)
     window.electron.receive('menu:undo', handleUndo)
@@ -349,7 +350,7 @@ async function handleSave() {
       projects: serializedProjects,
       customPropertyDefinitions: serializedCustomProps,
       workingDays: [...store.workingDays]
-    })
+    }, currentFilePath.value)
     if (result.success) {
       if (result.filePath) {
         currentFilePath.value = result.filePath
@@ -359,6 +360,66 @@ async function handleSave() {
     }
   } catch (error) {
     console.error('Failed to save:', error)
+    alert('Failed to save file: ' + error)
+  }
+}
+
+async function handleSaveAs() {
+  if (!window.electron?.saveFileAs) return
+
+  try {
+    // Serialize projects with dates as ISO strings
+    // Create plain objects to avoid Pinia reactivity proxy issues
+    const serializedProjects = store.projects.map(p => ({
+      id: p.id,
+      name: p.name,
+      userId: p.userId,
+      startDate: p.startDate.toISOString(),
+      endDate: p.endDate.toISOString(),
+      durationDays: p.durationDays,
+      bufferPercent: p.bufferPercent,
+      capacityPercent: p.capacityPercent,
+      color: p.color,
+      zIndex: p.zIndex,
+      customProperties: p.customProperties ? Object.fromEntries(
+        Object.entries(p.customProperties).map(([key, value]) => [
+          key,
+          value instanceof Date ? value.toISOString() : value
+        ])
+      ) : {},
+      parentProjectId: p.parentProjectId,
+      originalDurationDays: p.originalDurationDays,
+      overallDurationDays: p.overallDurationDays
+    }))
+    
+    const serializedUsers = store.users.map(u => ({
+      id: u.id,
+      name: u.name,
+      color: u.color
+    }))
+    
+    // Serialize custom property definitions to plain objects
+    const serializedCustomProps = customPropertyDefinitions.value.map(def => ({
+      name: def.name,
+      type: def.type,
+      required: def.required
+    }))
+    
+    const result = await window.electron.saveFileAs({
+      users: serializedUsers,
+      projects: serializedProjects,
+      customPropertyDefinitions: serializedCustomProps,
+      workingDays: [...store.workingDays]
+    })
+    if (result.success) {
+      if (result.filePath) {
+        currentFilePath.value = result.filePath
+      }
+      setDirty(false)
+      console.log('[SaveAs] File saved successfully')
+    }
+  } catch (error) {
+    console.error('Failed to save as:', error)
     alert('Failed to save file: ' + error)
   }
 }

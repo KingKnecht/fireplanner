@@ -178,9 +178,38 @@ function createWindow() {
 }
 
 // IPC handlers for file operations
-ipcMain.handle('dialog:saveFile', async (_, data) => {
+ipcMain.handle('dialog:saveFile', async (_, data, currentFilePath = null) => {
+  // If we have a current file path, save directly without dialog
+  if (currentFilePath) {
+    try {
+      await fs.writeFile(currentFilePath, JSON.stringify(data, null, 2), 'utf-8')
+      await addToRecentFiles(currentFilePath)
+      return { success: true, filePath: currentFilePath }
+    } catch (error) {
+      console.error('[Save] Failed to save:', error)
+      return { success: false, error: error.message }
+    }
+  }
+  
+  // No current file path, show save dialog
   const result = await dialog.showSaveDialog({
     title: 'Save Planner',
+    defaultPath: 'planner.fpj',
+    filters: [{ name: 'FirePlanner Files', extensions: ['fpj'] }]
+  })
+
+  if (!result.canceled && result.filePath) {
+    await fs.writeFile(result.filePath, JSON.stringify(data, null, 2), 'utf-8')
+    await addToRecentFiles(result.filePath)
+    return { success: true, filePath: result.filePath }
+  }
+  return { success: false }
+})
+
+// Save As - always shows dialog
+ipcMain.handle('dialog:saveFileAs', async (_, data) => {
+  const result = await dialog.showSaveDialog({
+    title: 'Save Planner As',
     defaultPath: 'planner.fpj',
     filters: [{ name: 'FirePlanner Files', extensions: ['fpj'] }]
   })
@@ -348,6 +377,13 @@ function createMenu() {
           accelerator: 'CommandOrControl+S',
           click: () => {
             win?.webContents.send('menu:save')
+          }
+        },
+        {
+          label: 'Save As...',
+          accelerator: 'CommandOrControl+Shift+S',
+          click: () => {
+            win?.webContents.send('menu:saveAs')
           }
         },
         {
