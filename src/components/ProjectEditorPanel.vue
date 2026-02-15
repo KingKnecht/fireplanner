@@ -5,6 +5,13 @@
       <button v-if="!selectedProject" @click="handleClear" class="btn-clear">Clear</button>
     </div>
 
+    <!-- Split Project Summary at Top -->
+    <div v-if="isSplitProject" class="split-summary-top" :class="{ 'duration-mismatch': hasDurationMismatch }">
+      <p class="split-label">Split Project Summary</p>
+      <p><strong>All Splits Duration:</strong> {{ totalSplitDuration }} / {{ originalDuration }} days</p>
+      <p><strong>This Block Duration:</strong> {{ form.durationDays }} / {{ originalDuration }} days</p>
+    </div>
+
     <div class="editor-form">
       <div class="form-group">
         <label>Project Name:</label>
@@ -99,8 +106,12 @@
 
       <!-- Custom Properties Section -->
       <div v-if="customPropertyDefinitions.length > 0" class="custom-properties-section">
-        <h4>Custom Properties</h4>
-        <div v-for="propDef in customPropertyDefinitions" :key="propDef.name" class="form-group">
+        <div class="collapsible-header" @click="customPropertiesExpanded = !customPropertiesExpanded">
+          <h4>Custom Properties</h4>
+          <span class="expand-icon">{{ customPropertiesExpanded ? '▼' : '▶' }}</span>
+        </div>
+        <div v-if="customPropertiesExpanded" class="custom-properties-content">
+          <div v-for="propDef in customPropertyDefinitions" :key="propDef.name" class="form-group">
           <label>
             {{ propDef.name }}:
             <span v-if="propDef.required" class="required-indicator">*</span>
@@ -157,6 +168,7 @@
             :class="{ 'invalid-field': isPropertyInvalid(propDef.name) }"
           />
         </div>
+        </div>
       </div>
 
       <div v-if="selectedProject" class="form-group">
@@ -185,13 +197,6 @@
       <div v-if="calculatedEndDate" class="calculated-info">
         <p><strong>Calculated End Date:</strong> {{ formatDate(calculatedEndDate) }}</p>
         <p><strong>Total Duration:</strong> {{ totalDuration }} days</p>
-        
-        <div v-if="isSplitProject" class="split-summary">
-          <hr class="divider" />
-          <p class="split-label">Split Project</p>
-          <p><strong>All Splits Duration:</strong> {{ totalSplitDuration }} / {{ originalDuration }} days</p>
-          <p><strong>This Block Duration:</strong> {{ form.durationDays }} / {{ originalDuration }} days</p>
-        </div>
       </div>
     </div>
   </div>
@@ -245,6 +250,7 @@ const emit = defineEmits<{
 const colorPalette = COLOR_PALETTE
 const isUpdatingFromProject = ref(false)
 const store = usePlannerStore()
+const customPropertiesExpanded = ref(false)
 
 // Helper to initialize custom properties with default values
 function initializeCustomProperties(): Record<string, string | number | boolean | Date | null> {
@@ -375,6 +381,11 @@ const totalSplitDuration = computed(() => {
 const originalDuration = computed(() => {
   if (!props.selectedProject) return 0
   return props.selectedProject.overallDurationDays || props.selectedProject.originalDurationDays || props.selectedProject.durationDays
+})
+
+const hasDurationMismatch = computed(() => {
+  if (!isSplitProject.value) return false
+  return totalSplitDuration.value !== originalDuration.value
 })
 
 // Validation for required custom properties
@@ -595,7 +606,34 @@ function handleClear() {
 .btn-clear:hover {
   background: rgba(255, 255, 255, 0.1);
 }
+.split-summary-top {
+  padding: 12px 16px;
+  margin: 0 0 16px 0;
+  background: #E3F2FD;
+  border-left: 4px solid #2196F3;
+  border-radius: 4px;
+  font-size: 13px;
+}
 
+.split-summary-top.duration-mismatch {
+  background: #FFF3E0;
+  border-left-color: #FF9800;
+}
+
+.split-summary-top p {
+  margin: 4px 0;
+}
+
+.split-summary-top .split-label {
+  color: #1976D2;
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.split-summary-top.duration-mismatch .split-label {
+  color: #F57C00;
+}
 .editor-form {
   padding: 20px;
   flex: 1;
@@ -741,11 +779,35 @@ function handleClear() {
   border-top: 1px solid #ddd;
 }
 
-.custom-properties-section h4 {
-  margin: 0 0 16px 0;
+.collapsible-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  padding: 8px 0;
+  margin-bottom: 0;
+}
+
+.collapsible-header:hover {
+  opacity: 0.7;
+}
+
+.collapsible-header h4 {
+  margin: 0;
   font-size: 16px;
   font-weight: 600;
   color: #2c3e50;
+}
+
+.expand-icon {
+  font-size: 12px;
+  color: #666;
+  transition: transform 0.2s;
+}
+
+.custom-properties-content {
+  margin-top: 16px;
 }
 
 .required-indicator {
@@ -835,6 +897,24 @@ function handleClear() {
   color: #42A5F5;
 }
 
+.dark-mode .split-summary-top {
+  background: #1E3A5F;
+  border-left-color: #42A5F5;
+}
+
+.dark-mode .split-summary-top.duration-mismatch {
+  background: #3E2723;
+  border-left-color: #FFB74D;
+}
+
+.dark-mode .split-summary-top .split-label {
+  color: #64B5F6;
+}
+
+.dark-mode .split-summary-top.duration-mismatch .split-label {
+  color: #FFB74D;
+}
+
 .dark-mode .color-swatch.selected {
   border-color: #4CAF50;
   box-shadow: 0 0 0 2px #1a1a1a, 0 0 0 4px #4CAF50;
@@ -844,8 +924,12 @@ function handleClear() {
   border-top-color: #3a3a3a;
 }
 
-.dark-mode .custom-properties-section h4 {
+.dark-mode .collapsible-header h4 {
   color: #b0b0b0;
+}
+
+.dark-mode .expand-icon {
+  color: #888;
 }
 
 .dark-mode .invalid-field {
