@@ -189,9 +189,14 @@
 
       <div v-if="selectedProject" class="form-group">
         <label>Z-Order:</label>
-        <button type="button" @click="sendToBack" class="btn-secondary">
-          Send to Back
-        </button>
+        <div class="z-order-buttons">
+          <button type="button" @click="sendToBack" class="btn-secondary">
+            Send to Back
+          </button>
+          <button type="button" @click="bringToFront" class="btn-secondary">
+            Bring to Front
+          </button>
+        </div>
       </div>
 
       <div class="form-actions">
@@ -564,8 +569,103 @@ function handleDelete() {
 
 function sendToBack() {
   if (!props.selectedProject) return
-  form.value.zIndex = 0
-  emit('updateZIndex', props.selectedProject.id, 0)
+  
+  // Get all projects for the same user that overlap with the selected project
+  const overlappingProjects = store.projects.filter(p => {
+    // Same user
+    if (p.userId !== props.selectedProject!.userId) return false
+    // Different project
+    if (p.id === props.selectedProject!.id) return false
+    // Check if they overlap in time
+    const currentEnd = calculateProjectEndDate(
+      props.selectedProject!.startDate,
+      props.selectedProject!.durationDays,
+      props.selectedProject!.bufferPercent,
+      props.selectedProject!.capacityPercent,
+      store.workingDays
+    )
+    const otherEnd = calculateProjectEndDate(
+      p.startDate,
+      p.durationDays,
+      p.bufferPercent,
+      p.capacityPercent,
+      store.workingDays
+    )
+    // Projects overlap if: start1 <= end2 AND start2 <= end1
+    return props.selectedProject!.startDate <= otherEnd && p.startDate <= currentEnd
+  })
+  
+  if (overlappingProjects.length === 0) {
+    // No overlapping projects, just set to 0
+    form.value.zIndex = 0
+    emit('updateZIndex', props.selectedProject.id, 0)
+    return
+  }
+  
+  // Find the minimum zIndex among OTHER overlapping projects (not including current)
+  const minZIndex = Math.min(...overlappingProjects.map(p => p.zIndex))
+  
+  // If current project is already at or below the minimum, we need to bump others up
+  if (props.selectedProject.zIndex <= minZIndex) {
+    // Bump all overlapping projects up by 1
+    overlappingProjects.forEach(p => {
+      store.updateProject(p.id, { zIndex: p.zIndex + 1 })
+    })
+    // Keep current at 0 (or its current value if already below minimum)
+    const newZIndex = Math.min(props.selectedProject.zIndex, 0)
+    form.value.zIndex = newZIndex
+    emit('updateZIndex', props.selectedProject.id, newZIndex)
+  } else {
+    // Current is above minimum, so just set it to the minimum
+    form.value.zIndex = minZIndex
+    emit('updateZIndex', props.selectedProject.id, minZIndex)
+  }
+}
+
+function bringToFront() {
+  if (!props.selectedProject) return
+  
+  // Get all projects for the same user that overlap with the selected project
+  const overlappingProjects = store.projects.filter(p => {
+    // Same user
+    if (p.userId !== props.selectedProject!.userId) return false
+    // Different project
+    if (p.id === props.selectedProject!.id) return false
+    // Check if they overlap in time
+    const currentEnd = calculateProjectEndDate(
+      props.selectedProject!.startDate,
+      props.selectedProject!.durationDays,
+      props.selectedProject!.bufferPercent,
+      props.selectedProject!.capacityPercent,
+      store.workingDays
+    )
+    const otherEnd = calculateProjectEndDate(
+      p.startDate,
+      p.durationDays,
+      p.bufferPercent,
+      p.capacityPercent,
+      store.workingDays
+    )
+    // Projects overlap if: start1 <= end2 AND start2 <= end1
+    return props.selectedProject!.startDate <= otherEnd && p.startDate <= currentEnd
+  })
+  
+  if (overlappingProjects.length === 0) {
+    // No overlapping projects, just set to 1
+    form.value.zIndex = 1
+    emit('updateZIndex', props.selectedProject.id, 1)
+    return
+  }
+  
+  // Find the maximum zIndex among ALL overlapping projects (including current)
+  const allZIndices = [props.selectedProject.zIndex, ...overlappingProjects.map(p => p.zIndex)]
+  const maxZIndex = Math.max(...allZIndices)
+  
+  // Set to one more than the maximum to ensure we go in front of everything
+  const newZIndex = maxZIndex + 1
+  
+  form.value.zIndex = newZIndex
+  emit('updateZIndex', props.selectedProject.id, newZIndex)
 }
 
 function handleClear() {
@@ -680,6 +780,15 @@ function handleClear() {
 .form-group input[type="color"] {
   height: 40px;
   padding: 4px;
+}
+
+.z-order-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.z-order-buttons button {
+  flex: 1;
 }
 
 .color-palette {
