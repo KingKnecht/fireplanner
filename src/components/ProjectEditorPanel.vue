@@ -92,6 +92,31 @@
       </div>
 
       <div class="form-group">
+        <label>Estimated Progress:</label>
+        <div class="capacity-input-group">
+          <input 
+            v-model.number="form.estimatedProgress" 
+            type="number" 
+            min="0" 
+            max="100" 
+            step="1"
+          />
+          <span class="percentage-symbol">%</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Time Spent (days):</label>
+        <input 
+          v-model.number="form.timeSpent" 
+          type="number" 
+          step="0.5" 
+          min="0" 
+          placeholder="e.g. 2.5"
+        />
+      </div>
+
+      <div class="form-group">
         <label>Start Date:</label>
         <DatePicker 
           v-model="form.startDate" 
@@ -247,6 +272,8 @@ const emit = defineEmits<{
     durationDays: number
     bufferPercent: number
     capacityPercent: number
+    estimatedProgress: number
+    timeSpent: number
     color: string
     zIndex: number
     customProperties?: Record<string, string | number | boolean | Date | null>
@@ -258,6 +285,8 @@ const emit = defineEmits<{
     durationDays: number
     bufferPercent: number
     capacityPercent: number
+    estimatedProgress: number
+    timeSpent: number
     color: string
     zIndex: number
     customProperties: Record<string, string | number | boolean | Date | null>
@@ -324,6 +353,8 @@ const form = ref({
   durationDays: 1,
   bufferPercent: 0,
   capacityPercent: 100,
+  estimatedProgress: 0,
+  timeSpent: 0,
   startDate: new Date(),
   color: COLOR_PALETTE[0],
   zIndex: 1,
@@ -449,6 +480,8 @@ watch(() => props.selectedProject, (project) => {
       durationDays: project.durationDays,
       bufferPercent: project.bufferPercent,
       capacityPercent: project.capacityPercent,
+      estimatedProgress: project.estimatedProgress ?? 0,
+      timeSpent: project.timeSpent ?? 0,
       startDate: new Date(project.startDate),
       color: project.color,
       zIndex: project.zIndex,
@@ -468,6 +501,8 @@ watch(() => props.selectedProject, (project) => {
       durationDays: 1,
       bufferPercent: 0,
       capacityPercent: 100,
+      estimatedProgress: 0,
+      timeSpent: 0,
       startDate: defaultDate,
       color: COLOR_PALETTE[0],
       zIndex: 1,
@@ -489,6 +524,8 @@ watch(() => props.newProjectData, (data) => {
       durationDays: 1,
       bufferPercent: 0,
       capacityPercent: 100,
+      estimatedProgress: 0,
+      timeSpent: 0,
       startDate: new Date(data.startDate),
       color: COLOR_PALETTE[0],
       zIndex: 1,
@@ -499,7 +536,7 @@ watch(() => props.newProjectData, (data) => {
 }, { immediate: true })
 
 // Watch other form fields for live updates on existing projects
-watch(() => [form.value.name, form.value.userId, form.value.durationDays, form.value.bufferPercent, form.value.capacityPercent, form.value.startDate, form.value.color, form.value.customProperties, form.value.overallDurationDays], () => {
+watch(() => [form.value.name, form.value.userId, form.value.durationDays, form.value.bufferPercent, form.value.capacityPercent, form.value.estimatedProgress, form.value.timeSpent, form.value.startDate, form.value.color, form.value.customProperties, form.value.overallDurationDays], () => {
   if (!props.selectedProject || !form.value.startDate || isUpdatingFromProject.value) return
   
   const updates: Partial<{
@@ -509,6 +546,8 @@ watch(() => [form.value.name, form.value.userId, form.value.durationDays, form.v
     durationDays: number
     bufferPercent: number
     capacityPercent: number
+    estimatedProgress: number
+    timeSpent: number
     color: string
     customProperties: Record<string, string | number | boolean | Date | null>
     overallDurationDays: number | undefined
@@ -519,6 +558,8 @@ watch(() => [form.value.name, form.value.userId, form.value.durationDays, form.v
   if (form.value.durationDays !== props.selectedProject.durationDays) updates.durationDays = form.value.durationDays
   if (form.value.bufferPercent !== props.selectedProject.bufferPercent) updates.bufferPercent = form.value.bufferPercent
   if (form.value.capacityPercent !== props.selectedProject.capacityPercent) updates.capacityPercent = form.value.capacityPercent
+  if (form.value.estimatedProgress !== props.selectedProject.estimatedProgress) updates.estimatedProgress = form.value.estimatedProgress
+  if (form.value.timeSpent !== props.selectedProject.timeSpent) updates.timeSpent = form.value.timeSpent
   if (form.value.color !== props.selectedProject.color) updates.color = form.value.color
   if (form.value.overallDurationDays !== props.selectedProject.overallDurationDays) updates.overallDurationDays = form.value.overallDurationDays
   
@@ -555,6 +596,8 @@ function handleCreate() {
     durationDays: form.value.durationDays,
     bufferPercent: form.value.bufferPercent,
     capacityPercent: form.value.capacityPercent,
+    estimatedProgress: form.value.estimatedProgress,
+    timeSpent: form.value.timeSpent,
     color: (form.value.color || COLOR_PALETTE[0]) as string,
     zIndex: form.value.zIndex,
     customProperties: form.value.customProperties
@@ -675,6 +718,8 @@ function handleClear() {
     durationDays: 1,
     bufferPercent: 0,
     capacityPercent: 100,
+    estimatedProgress: 0,
+    timeSpent: 0,
     startDate: new Date(defaultStartDate.value),
     color: COLOR_PALETTE[0],
     zIndex: 1,

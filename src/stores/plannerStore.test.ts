@@ -96,6 +96,8 @@ describe('plannerStore', () => {
         durationDays: 5,
         bufferPercent: 0,
         capacityPercent: 100,
+        estimatedProgress: 0,
+        timeSpent: 0,
         color: '#FF0000',
         zIndex: 1
       })
@@ -127,6 +129,8 @@ describe('plannerStore', () => {
         durationDays: 5,
         bufferPercent: 0,
         capacityPercent: 100,
+        estimatedProgress: 0,
+        timeSpent: 0,
         color: '#FF0000',
         zIndex: 1
       })
@@ -146,6 +150,8 @@ describe('plannerStore', () => {
         durationDays: 5,
         bufferPercent: 0,
         capacityPercent: 100,
+        estimatedProgress: 0,
+        timeSpent: 0,
         color: '#FF0000',
         zIndex: 1
       })
@@ -163,6 +169,8 @@ describe('plannerStore', () => {
         durationDays: 5,
         bufferPercent: 0,
         capacityPercent: 100,
+        estimatedProgress: 0,
+        timeSpent: 0,
         color: '#FF0000'
       })
       
@@ -181,6 +189,8 @@ describe('plannerStore', () => {
         durationDays: 5,
         bufferPercent: 0,
         capacityPercent: 100,
+        estimatedProgress: 0,
+        timeSpent: 0,
         color: '#FF0000',
         zIndex: 1
       })
@@ -200,6 +210,8 @@ describe('plannerStore', () => {
         durationDays: 5,
         bufferPercent: 0,
         capacityPercent: 100,
+        estimatedProgress: 0,
+        timeSpent: 0,
         color: '#FF0000',
         zIndex: 1
       })
@@ -221,6 +233,8 @@ describe('plannerStore', () => {
         durationDays: 5,
         bufferPercent: 0,
         capacityPercent: 100,
+        estimatedProgress: 0,
+        timeSpent: 0,
         color: '#FF0000',
         zIndex: 1
       })
@@ -250,6 +264,8 @@ describe('plannerStore', () => {
         durationDays: 5,
         bufferPercent: 0,
         capacityPercent: 100,
+        estimatedProgress: 0,
+        timeSpent: 0,
         color: '#FF0000',
         zIndex: 1
       })
@@ -271,6 +287,8 @@ describe('plannerStore', () => {
         durationDays: 5,
         bufferPercent: 0,
         capacityPercent: 100,
+        estimatedProgress: 0,
+        timeSpent: 0,
         color: '#FF0000',
         zIndex: 1
       })
@@ -304,6 +322,8 @@ describe('plannerStore', () => {
         durationDays: 5,
         bufferPercent: 0,
         capacityPercent: 100,
+        estimatedProgress: 0,
+        timeSpent: 0,
         color: '#FF0000',
         zIndex: 1
       })
@@ -315,6 +335,8 @@ describe('plannerStore', () => {
         durationDays: 5,
         bufferPercent: 0,
         capacityPercent: 100,
+        estimatedProgress: 0,
+        timeSpent: 0,
         color: '#00FF00',
         zIndex: 1
       })
@@ -326,6 +348,8 @@ describe('plannerStore', () => {
         durationDays: 5,
         bufferPercent: 0,
         capacityPercent: 100,
+        estimatedProgress: 0,
+        timeSpent: 0,
         color: '#FF0000',
         zIndex: 1
       })
@@ -346,6 +370,8 @@ describe('plannerStore', () => {
         durationDays: 5,
         bufferPercent: 0,
         capacityPercent: 100,
+        estimatedProgress: 0,
+        timeSpent: 0,
         color: '#FF0000',
         zIndex: 1
       })
@@ -376,6 +402,8 @@ describe('plannerStore', () => {
         durationDays: 5,
         bufferPercent: 0,
         capacityPercent: 100,
+        estimatedProgress: 0,
+        timeSpent: 0,
         color: '#FF0000',
         zIndex: 1
       })
@@ -396,6 +424,8 @@ describe('plannerStore', () => {
         durationDays: 5,
         bufferPercent: 0,
         capacityPercent: 100,
+        estimatedProgress: 0,
+        timeSpent: 0,
         color: '#FF0000',
         zIndex: 1
       })
@@ -418,6 +448,8 @@ describe('plannerStore', () => {
         durationDays: 3,
         bufferPercent: 0,
         capacityPercent: 100,
+        estimatedProgress: 0,
+        timeSpent: 0,
         color: '#FF0000',
         zIndex: 1
       })
@@ -444,6 +476,8 @@ describe('plannerStore', () => {
         durationDays: 5,
         bufferPercent: 0,
         capacityPercent: 100,
+        estimatedProgress: 0,
+        timeSpent: 0,
         color: '#FF0000',
         zIndex: 1
       })
@@ -464,6 +498,8 @@ describe('plannerStore', () => {
         durationDays: 5,
         bufferPercent: 0,
         capacityPercent: 100,
+        estimatedProgress: 0,
+        timeSpent: 0,
         color: '#FF0000',
         zIndex: 1
       })
@@ -484,6 +520,8 @@ describe('plannerStore', () => {
         durationDays: 0.5,
         bufferPercent: 0,
         capacityPercent: 100,
+        estimatedProgress: 0,
+        timeSpent: 0,
         color: '#FF0000',
         zIndex: 1
       })
@@ -507,6 +545,8 @@ describe('plannerStore', () => {
         durationDays: 5,
         bufferPercent: 25,
         capacityPercent: 75,
+        estimatedProgress: 0,
+        timeSpent: 0,
         color: '#FF0000',
         zIndex: 3,
         customProperties: { priority: 'high' }
@@ -532,6 +572,8 @@ describe('plannerStore', () => {
         durationDays: 5,
         bufferPercent: 0,
         capacityPercent: 100,
+        estimatedProgress: 0,
+        timeSpent: 0,
         color: '#FF0000',
         zIndex: 1
       })
@@ -558,6 +600,8 @@ describe('plannerStore', () => {
         durationDays: 5,
         bufferPercent: 0,
         capacityPercent: 100,
+        estimatedProgress: 0,
+        timeSpent: 0,
         color: '#FF0000',
         zIndex: 1
       })
@@ -587,6 +631,8 @@ describe('plannerStore', () => {
         durationDays: 5,
         bufferPercent: 0,
         capacityPercent: 100,
+        estimatedProgress: 0,
+        timeSpent: 0,
         color: '#FF0000',
         zIndex: 1
       })
@@ -614,6 +660,8 @@ describe('plannerStore', () => {
         durationDays: 5,
         bufferPercent: 0,
         capacityPercent: 100,
+        estimatedProgress: 0,
+        timeSpent: 0,
         color: '#FF0000',
         zIndex: 1
       })
@@ -636,6 +684,8 @@ describe('plannerStore', () => {
         durationDays: 5,
         bufferPercent: 0,
         capacityPercent: 100,
+        estimatedProgress: 0,
+        timeSpent: 0,
         color: '#FF0000',
         zIndex: 1
       })
@@ -658,6 +708,8 @@ describe('plannerStore', () => {
         durationDays: 5,
         bufferPercent: 0,
         capacityPercent: 100,
+        estimatedProgress: 0,
+        timeSpent: 0,
         color: '#FF0000',
         zIndex: 1
       })
@@ -689,6 +741,8 @@ describe('plannerStore', () => {
         durationDays: 5,
         bufferPercent: 0,
         capacityPercent: 100,
+        estimatedProgress: 0,
+        timeSpent: 0,
         color: '#FF0000',
         zIndex: 1
       })

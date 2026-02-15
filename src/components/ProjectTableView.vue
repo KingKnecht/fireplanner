@@ -94,6 +94,16 @@ const onRowClick = (event: any) => {
           {{ slotProps.data.capacityPercent }}%
         </template>
       </Column>
+      <Column field="estimatedProgress" header="Est. Progress %" :sortable="true" style="min-width: 130px">
+        <template #body="slotProps">
+          {{ slotProps.data.estimatedProgress ?? 0 }}%
+        </template>
+      </Column>
+      <Column field="timeSpent" header="Time Spent (days)" :sortable="true" style="min-width: 140px">
+        <template #body="slotProps">
+          {{ slotProps.data.timeSpent ?? 0 }}
+        </template>
+      </Column>
       <Column field="color" header="Color" :sortable="true" style="min-width: 100px">
         <template #body="slotProps">
           <div class="color-indicator" :style="{ backgroundColor: slotProps.data.color }" />

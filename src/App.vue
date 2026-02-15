@@ -203,6 +203,8 @@ function handleCopy() {
     durationDays: selectedProject.value.durationDays,
     bufferPercent: selectedProject.value.bufferPercent,
     capacityPercent: selectedProject.value.capacityPercent,
+    estimatedProgress: selectedProject.value.estimatedProgress,
+    timeSpent: selectedProject.value.timeSpent,
     color: selectedProject.value.color,
     zIndex: selectedProject.value.zIndex,
     customProperties: selectedProject.value.customProperties
@@ -224,6 +226,8 @@ function handleCut() {
     durationDays: selectedProject.value.durationDays,
     bufferPercent: selectedProject.value.bufferPercent,
     capacityPercent: selectedProject.value.capacityPercent,
+    estimatedProgress: selectedProject.value.estimatedProgress,
+    timeSpent: selectedProject.value.timeSpent,
     color: selectedProject.value.color,
     zIndex: selectedProject.value.zIndex,
     customProperties: selectedProject.value.customProperties
@@ -244,6 +248,8 @@ function handlePaste() {
     durationDays: clipboard.value.durationDays,
     bufferPercent: clipboard.value.bufferPercent,
     capacityPercent: clipboard.value.capacityPercent,
+    estimatedProgress: clipboard.value.estimatedProgress,
+    timeSpent: clipboard.value.timeSpent,
     color: clipboard.value.color,
     zIndex: clipboard.value.zIndex,
     customProperties: clipboard.value.customProperties
@@ -327,6 +333,8 @@ async function handleSave() {
       durationDays: p.durationDays,
       bufferPercent: p.bufferPercent,
       capacityPercent: p.capacityPercent,
+      estimatedProgress: p.estimatedProgress,
+      timeSpent: p.timeSpent,
       color: p.color,
       zIndex: p.zIndex,
       customProperties: p.customProperties ? Object.fromEntries(
@@ -387,6 +395,8 @@ async function handleSaveAs() {
       durationDays: p.durationDays,
       bufferPercent: p.bufferPercent,
       capacityPercent: p.capacityPercent,
+      estimatedProgress: p.estimatedProgress,
+      timeSpent: p.timeSpent,
       color: p.color,
       zIndex: p.zIndex,
       customProperties: p.customProperties ? Object.fromEntries(
@@ -450,6 +460,8 @@ async function handleLoad() {
         startDate: new Date(p.startDate),
         endDate: new Date(p.endDate),
         capacityPercent: p.capacityPercent ?? 100,
+        estimatedProgress: p.estimatedProgress ?? 0,
+        timeSpent: p.timeSpent ?? 0,
         customProperties: p.customProperties ? Object.fromEntries(
           Object.entries(p.customProperties).map(([key, value]) => [
             key,
@@ -513,6 +525,8 @@ async function handleOpenRecentFile(filePath: string) {
         startDate: new Date(p.startDate),
         endDate: new Date(p.endDate),
         capacityPercent: p.capacityPercent ?? 100,
+        estimatedProgress: p.estimatedProgress ?? 0,
+        timeSpent: p.timeSpent ?? 0,
         customProperties: p.customProperties ? Object.fromEntries(
           Object.entries(p.customProperties).map(([key, value]) => [
             key,
@@ -607,6 +621,8 @@ async function performAutosave() {
       durationDays: p.durationDays,
       bufferPercent: p.bufferPercent,
       capacityPercent: p.capacityPercent,
+      estimatedProgress: p.estimatedProgress,
+      timeSpent: p.timeSpent,
       color: p.color,
       zIndex: p.zIndex,
       customProperties: p.customProperties ? Object.fromEntries(
@@ -689,6 +705,8 @@ function handleProjectCreate(data: {
   durationDays: number
   bufferPercent: number
   capacityPercent: number
+  estimatedProgress: number
+  timeSpent: number
   color: string
   zIndex: number
   customProperties?: Record<string, string | number | boolean | Date | null>
@@ -708,6 +726,8 @@ function handleProjectUpdate(projectId: string, updates: Partial<{
   durationDays: number
   bufferPercent: number
   capacityPercent: number
+  estimatedProgress: number
+  timeSpent: number
   color: string
   zIndex: number
   customProperties: Record<string, string | number | boolean | Date | null>

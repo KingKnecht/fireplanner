@@ -19,6 +19,8 @@ describe('projectLanes', () => {
       durationDays,
       bufferPercent: 0,
       capacityPercent,
+      estimatedProgress: 0,
+      timeSpent: 0,
       color: '#FF0000',
       customProperties: {},
       zIndex: 0

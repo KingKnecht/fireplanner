@@ -14,6 +14,8 @@ describe('ProjectBlock.vue', () => {
     durationDays: 5,
     bufferPercent: 0,
     capacityPercent: 100,
+    estimatedProgress: 0,
+    timeSpent: 0,
     color: '#FF0000',
     zIndex: 1
   }

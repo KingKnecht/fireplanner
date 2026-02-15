@@ -13,7 +13,7 @@ export interface CustomPropertyDefinition {
 }
 
 export interface Project {
-  
+
   id: string
   name: string
   userId: string | null  // null for unassigned
@@ -22,6 +22,8 @@ export interface Project {
   durationDays: number  // Project duration in work days (can be 0.5, 1, 1.5, etc.)
   bufferPercent: number  // 0, 10, 25, 33, 50, 75, 100
   capacityPercent: number  // 33, 50, 75, 100 - daily capacity available
+  estimatedProgress: number  // 0-100% - estimated project completion percentage
+  timeSpent: number  // Actual days spent (can be 0.5, 1, 1.5, etc.)
   color: string
   zIndex: number  // z-depth for overlapping projects
   customProperties?: Record<string, string | number | boolean | Date | null>

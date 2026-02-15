@@ -61,6 +61,8 @@ export const usePlannerStore = defineStore('planner', () => {
       id: nanoid(10),
       endDate: projectEndDate,
       zIndex: project.zIndex ?? 1,
+      estimatedProgress: project.estimatedProgress ?? 0,
+      timeSpent: project.timeSpent ?? 0,
       customProperties: project.customProperties || {}
     }
     projects.value.push(newProject)
@@ -80,6 +82,8 @@ export const usePlannerStore = defineStore('planner', () => {
         durationDays: updates.durationDays ?? currentProject.durationDays,
         bufferPercent: updates.bufferPercent ?? currentProject.bufferPercent,
         capacityPercent: updates.capacityPercent ?? currentProject.capacityPercent,
+        estimatedProgress: updates.estimatedProgress ?? currentProject.estimatedProgress,
+        timeSpent: updates.timeSpent ?? currentProject.timeSpent,
         color: updates.color ?? currentProject.color,
         zIndex: updates.zIndex !== undefined ? updates.zIndex : currentProject.zIndex,
         customProperties: updates.customProperties !== undefined ? updates.customProperties : currentProject.customProperties,
@@ -234,6 +238,8 @@ export const usePlannerStore = defineStore('planner', () => {
       durationDays: 1,
       bufferPercent: project.bufferPercent,
       capacityPercent: project.capacityPercent,
+      estimatedProgress: 0,
+      timeSpent: 0,
       color: project.color,
       zIndex: project.zIndex,
       customProperties: { ...project.customProperties },
