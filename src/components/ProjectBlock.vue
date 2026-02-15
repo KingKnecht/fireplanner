@@ -8,6 +8,7 @@
     <div class="project-content">
       <div class="project-name">{{ project.name }}</div>
     </div>
+    <span v-if="isSplitProject" class="split-label">(split)</span>
     <button 
       v-if="canSplit"
       class="split-button"
@@ -28,6 +29,7 @@ const props = defineProps<{
   weekdays: Date[]
   cellHeight: number
   isSelected?: boolean
+  isRelatedSplit?: boolean
   lane?: number
   maxLanes?: number
   laneOffset?: number
@@ -43,6 +45,12 @@ const emit = defineEmits<{
 
 const canSplit = computed(() => {
   return props.project.durationDays >= 1
+})
+
+const isSplitProject = computed(() => {
+  // A project is a split if it has a parentProjectId (it's a child)
+  // OR if it has originalDurationDays (it's been split into parts)
+  return !!props.project.parentProjectId || !!props.project.originalDurationDays
 })
 
 const blockStyle = computed<CSSProperties>(() => {
@@ -70,6 +78,21 @@ const blockStyle = computed<CSSProperties>(() => {
     ? `calc(${props.laneOffset}% + 2px)`
     : '2px'
 
+  // Determine border and shadow based on selection and split relationship
+  let border: string
+  let boxShadow: string
+  
+  if (props.isSelected) {
+    border = '3px solid #2196F3'
+    boxShadow = '0 0 12px rgba(33, 150, 243, 0.5)'
+  } else if (props.isRelatedSplit) {
+    border = '2px solid #9C27B0'
+    boxShadow = '0 0 8px rgba(156, 39, 176, 0.4)'
+  } else {
+    border = '2px solid rgba(0, 0, 0, 0.3)'
+    boxShadow = 'none'
+  }
+
   return {
     top: `${topPosition * props.cellHeight}px`,
     height: `${height * props.cellHeight - 4}px`,
@@ -77,14 +100,14 @@ const blockStyle = computed<CSSProperties>(() => {
     position: 'absolute',
     left: leftPosition,
     width: `calc(${props.project.capacityPercent}% - 4px)`,
-    border: props.isSelected ? '3px solid #2196F3' : '2px solid rgba(0, 0, 0, 0.3)',
+    border,
     borderRadius: '4px',
     padding: '8px',
     cursor: 'move',
     overflow: 'visible',
     opacity: '0.85',
     zIndex: props.project.zIndex,
-    boxShadow: props.isSelected ? '0 0 12px rgba(33, 150, 243, 0.5)' : 'none'
+    boxShadow
   }
 })
 
@@ -176,5 +199,19 @@ function handleDragEnd() {
 
 .split-button:active {
   transform: scale(0.95);
+}
+
+.split-label {
+  position: absolute;
+  top: 4px;
+  right: 32px;
+  padding: 2px 6px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #9C27B0;
+  user-select: none;
+  pointer-events: none;
 }
 </style>

@@ -60,6 +60,7 @@
             :weekdays="weekdays"
             :cell-height="cellHeight"
             :is-selected="project.id === selectedProjectId"
+            :is-related-split="isRelatedSplit(project.id)"
             :lane="getLaneInfo(user.id, project.id).lane"
             :max-lanes="getLaneInfo(user.id, project.id).maxLanes"
             :lane-offset="getLaneInfo(user.id, project.id).offset"
@@ -93,6 +94,7 @@
             :weekdays="weekdays"
             :cell-height="cellHeight"
             :is-selected="project.id === selectedProjectId"
+            :is-related-split="isRelatedSplit(project.id)"
             :lane="getLaneInfo(null, project.id).lane"
             :max-lanes="getLaneInfo(null, project.id).maxLanes"
             :lane-offset="getLaneInfo(null, project.id).offset"
@@ -171,6 +173,28 @@ function getLaneInfo(userId: string | null, projectId: string) {
   const key = userId || 'unassigned'
   const userLanes = userLaneAssignments.value.get(key)
   return userLanes?.get(projectId) || { lane: 0, maxLanes: 1, offset: 0 }
+}
+
+// Compute which projects are part of the selected project's split group
+const relatedSplitProjectIds = computed(() => {
+  if (!props.selectedProjectId) return new Set<string>()
+  
+  const selectedProject = store.projects.find(p => p.id === props.selectedProjectId)
+  if (!selectedProject) return new Set<string>()
+  
+  // If this project is part of a split group, get all related projects
+  const parentId = selectedProject.parentProjectId || selectedProject.id
+  const relatedProjects = store.getSplitProjects(parentId)
+  
+  // Only include if there are actually multiple splits (not just a single project)
+  if (relatedProjects.length <= 1) return new Set<string>()
+  
+  return new Set(relatedProjects.map(p => p.id))
+})
+
+// Helper function to check if a project is part of the selected split group
+function isRelatedSplit(projectId: string): boolean {
+  return relatedSplitProjectIds.value.has(projectId)
 }
 
 function zoomIn() {
