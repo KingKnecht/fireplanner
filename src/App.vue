@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import Toast from 'primevue/toast'
 import PlannerGrid from './components/PlannerGrid.vue'
+import ProjectTableView from './components/ProjectTableView.vue'
 import ProjectEditorPanel from './components/ProjectEditorPanel.vue'
 import UserDialog from './components/UserDialog.vue'
 import { usePlannerStore } from './stores/plannerStore'
@@ -17,6 +18,13 @@ const selectedProject = ref<Project | null>(null)
 const plannerGridRef = ref<InstanceType<typeof PlannerGrid> | null>(null)
 
 const newProjectData = ref<{ userId: string | null; startDate: Date } | null>(null)
+
+// View toggle
+const isTableView = ref(false)
+
+function toggleView() {
+  isTableView.value = !isTableView.value
+}
 
 // Clipboard for copy/cut/paste
 const clipboard = ref<Omit<Project, 'id'> | null>(null)
@@ -799,6 +807,9 @@ function handleSplitProject(project: Project) {
         <span v-else class="current-file">Untitled</span>
       </div>
       <div class="header-actions">
+        <button @click="toggleView" class="btn-header" :title="isTableView ? 'Switch to Grid View' : 'Switch to Table View'">
+          {{ isTableView ? '📅 Grid' : '📊 Table' }}
+        </button>
         <button @click="addNewUser" class="btn-header">Add User</button>
         <button @click="openGitHub" class="github-link" title="View on GitHub">
           <svg width="24" height="24" viewBox="0 0 16 16" fill="currentColor">
@@ -810,6 +821,7 @@ function handleSplitProject(project: Project) {
 
     <main class="app-main">
       <PlannerGrid
+        v-if="!isTableView"
         ref="plannerGridRef"
         :users="store.users"
         :weekdays="store.weekdays"
@@ -821,6 +833,12 @@ function handleSplitProject(project: Project) {
         @move-project="handleMoveProject"
         @delete-user="handleDeleteUser"
         @split-project="handleSplitProject"
+      />
+
+      <ProjectTableView
+        v-if="isTableView"
+        :custom-property-definitions="customPropertyDefinitions"
+        @select-project="handleEditProject"
       />
 
       <ProjectEditorPanel
