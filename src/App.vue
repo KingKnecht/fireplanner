@@ -325,7 +325,10 @@ async function handleSave() {
           key,
           value instanceof Date ? value.toISOString() : value
         ])
-      ) : {}
+      ) : {},
+      parentProjectId: p.parentProjectId,
+      originalDurationDays: p.originalDurationDays,
+      overallDurationDays: p.overallDurationDays
     }))
     
     const serializedUsers = store.users.map(u => ({
@@ -385,7 +388,10 @@ async function handleLoad() {
               ? new Date(value)
               : value
           ])
-        ) : {}
+        ) : {},
+        parentProjectId: p.parentProjectId,
+        originalDurationDays: p.originalDurationDays,
+        overallDurationDays: p.overallDurationDays
       }))
       
       // Load custom property definitions from file if present
@@ -445,7 +451,10 @@ async function handleOpenRecentFile(filePath: string) {
               ? new Date(value)
               : value
           ])
-        ) : {}
+        ) : {},
+        parentProjectId: p.parentProjectId,
+        originalDurationDays: p.originalDurationDays,
+        overallDurationDays: p.overallDurationDays
       }))
       
       // Load custom property definitions from file if present
@@ -536,7 +545,10 @@ async function performAutosave() {
           key,
           value instanceof Date ? value.toISOString() : value
         ])
-      ) : {}
+      ) : {},
+      parentProjectId: p.parentProjectId,
+      originalDurationDays: p.originalDurationDays,
+      overallDurationDays: p.overallDurationDays
     }))
     
     const serializedUsers = store.users.map(u => ({
@@ -598,6 +610,7 @@ function handleCreateProject(userId: string | null, startDate: Date) {
 
 function handleEditProject(project: Project) {
   selectedProject.value = project
+  newProjectData.value = null  // Clear newProjectData when selecting existing project
 }
 
 function handleProjectCreate(data: {
@@ -609,6 +622,7 @@ function handleProjectCreate(data: {
   capacityPercent: number
   color: string
   zIndex: number
+  customProperties?: Record<string, string | number | boolean | Date | null>
 }) {
   const project = store.addProject(data)
   setDirty(true)
@@ -624,7 +638,11 @@ function handleProjectUpdate(projectId: string, updates: Partial<{
   startDate: Date
   durationDays: number
   bufferPercent: number
+  capacityPercent: number
   color: string
+  zIndex: number
+  customProperties: Record<string, string | number | boolean | Date | null>
+  overallDurationDays: number | undefined
 }>) {
   store.updateProject(projectId, updates)
   setDirty(true)
@@ -696,6 +714,15 @@ function handleDeleteUser(userId: string) {
     selectedProject.value = store.projects.find(p => p.id === selectedProject.value?.id) || null
   }
 }
+
+function handleSplitProject(project: Project) {
+  store.splitProject(project.id)
+  setDirty(true)
+  // Update selectedProject to point to the updated object from the store
+  if (selectedProject.value && selectedProject.value.id === project.id) {
+    selectedProject.value = store.projects.find(p => p.id === project.id) || null
+  }
+}
 </script>
 
 <template>
@@ -732,6 +759,7 @@ function handleDeleteUser(userId: string) {
         @edit-project="handleEditProject"
         @move-project="handleMoveProject"
         @delete-user="handleDeleteUser"
+        @split-project="handleSplitProject"
       />
 
       <ProjectEditorPanel

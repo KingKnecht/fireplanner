@@ -364,4 +364,349 @@ describe('plannerStore', () => {
       expect(projects).toEqual([])
     })
   })
+
+  describe('splitProject', () => {
+    it('should split a project by reducing duration by 1 day', () => {
+      const store = usePlannerStore()
+      
+      const project = store.addProject({
+        name: 'Test Project',
+        userId: null,
+        startDate: new Date(2026, 1, 16), // Monday
+        durationDays: 5,
+        bufferPercent: 0,
+        capacityPercent: 100,
+        color: '#FF0000',
+        zIndex: 1
+      })
+      
+      store.splitProject(project.id)
+      
+      expect(store.projects).toHaveLength(2)
+      expect(store.projects[0]!.durationDays).toBe(4)
+    })
+
+    it('should create a new 1-day split project', () => {
+      const store = usePlannerStore()
+      
+      const project = store.addProject({
+        name: 'Test Project',
+        userId: null,
+        startDate: new Date(2026, 1, 16), // Monday
+        durationDays: 5,
+        bufferPercent: 0,
+        capacityPercent: 100,
+        color: '#FF0000',
+        zIndex: 1
+      })
+      
+      store.splitProject(project.id)
+      
+      const newSplit = store.projects[1]!
+      expect(newSplit.durationDays).toBe(1)
+      expect(newSplit.name).toBe('Test Project')
+      expect(newSplit.color).toBe('#FF0000')
+    })
+
+    it('should place new split immediately after parent ends', () => {
+      const store = usePlannerStore()
+      
+      const project = store.addProject({
+        name: 'Test Project',
+        userId: null,
+        startDate: new Date(2026, 1, 16), // Monday
+        durationDays: 3,
+        bufferPercent: 0,
+        capacityPercent: 100,
+        color: '#FF0000',
+        zIndex: 1
+      })
+      
+      store.splitProject(project.id)
+      
+      const parentEndDate = store.projects[0]!.endDate
+      const newSplitStartDate = store.projects[1]!.startDate
+      
+      // New split should start the day after parent ends
+      const expectedStartDate = new Date(parentEndDate)
+      expectedStartDate.setDate(expectedStartDate.getDate() + 1)
+      
+      expect(newSplitStartDate.getDate()).toBe(expectedStartDate.getDate())
+    })
+
+    it('should set parentProjectId on both projects', () => {
+      const store = usePlannerStore()
+      
+      const project = store.addProject({
+        name: 'Test Project',
+        userId: null,
+        startDate: new Date(2026, 1, 16),
+        durationDays: 5,
+        bufferPercent: 0,
+        capacityPercent: 100,
+        color: '#FF0000',
+        zIndex: 1
+      })
+      
+      store.splitProject(project.id)
+      
+      expect(store.projects[0]!.parentProjectId).toBe(project.id)
+      expect(store.projects[1]!.parentProjectId).toBe(project.id)
+    })
+
+    it('should set originalDurationDays on both projects', () => {
+      const store = usePlannerStore()
+      
+      const project = store.addProject({
+        name: 'Test Project',
+        userId: null,
+        startDate: new Date(2026, 1, 16),
+        durationDays: 5,
+        bufferPercent: 0,
+        capacityPercent: 100,
+        color: '#FF0000',
+        zIndex: 1
+      })
+      
+      store.splitProject(project.id)
+      
+      expect(store.projects[0]!.originalDurationDays).toBe(5)
+      expect(store.projects[1]!.originalDurationDays).toBe(5)
+    })
+
+    it('should not split if duration is less than 1 day', () => {
+      const store = usePlannerStore()
+      
+      const project = store.addProject({
+        name: 'Test Project',
+        userId: null,
+        startDate: new Date(2026, 1, 16),
+        durationDays: 0.5,
+        bufferPercent: 0,
+        capacityPercent: 100,
+        color: '#FF0000',
+        zIndex: 1
+      })
+      
+      store.splitProject(project.id)
+      
+      expect(store.projects).toHaveLength(1)
+      expect(store.projects[0]!.durationDays).toBe(0.5)
+    })
+
+    it('should copy all properties from parent to split', () => {
+      const store = usePlannerStore()
+      
+      store.addUser('Alice')
+      const userId = store.users[0]!.id
+      
+      const project = store.addProject({
+        name: 'Test Project',
+        userId,
+        startDate: new Date(2026, 1, 16),
+        durationDays: 5,
+        bufferPercent: 25,
+        capacityPercent: 75,
+        color: '#FF0000',
+        zIndex: 3,
+        customProperties: { priority: 'high' }
+      })
+      
+      store.splitProject(project.id)
+      
+      const newSplit = store.projects[1]!
+      expect(newSplit.userId).toBe(userId)
+      expect(newSplit.bufferPercent).toBe(25)
+      expect(newSplit.capacityPercent).toBe(75)
+      expect(newSplit.zIndex).toBe(3)
+      expect(newSplit.customProperties?.priority).toBe('high')
+    })
+    
+    it('should synchronize name changes across all split projects', () => {
+      const store = usePlannerStore()
+      
+      const project = store.addProject({
+        name: 'Original Name',
+        userId: null,
+        startDate: new Date(2026, 1, 16),
+        durationDays: 5,
+        bufferPercent: 0,
+        capacityPercent: 100,
+        color: '#FF0000',
+        zIndex: 1
+      })
+      
+      store.splitProject(project.id)
+      store.splitProject(project.id)
+      
+      // Update name on one split
+      store.updateProject(project.id, { name: 'Updated Name' })
+      
+      // All splits should have the updated name
+      expect(store.projects[0]!.name).toBe('Updated Name')
+      expect(store.projects[1]!.name).toBe('Updated Name')
+      expect(store.projects[2]!.name).toBe('Updated Name')
+    })
+    
+    it('should synchronize color changes across all split projects', () => {
+      const store = usePlannerStore()
+      
+      const project = store.addProject({
+        name: 'Test',
+        userId: null,
+        startDate: new Date(2026, 1, 16),
+        durationDays: 5,
+        bufferPercent: 0,
+        capacityPercent: 100,
+        color: '#FF0000',
+        zIndex: 1
+      })
+      
+      store.splitProject(project.id)
+      
+      // Update color on one split
+      store.updateProject(project.id, { color: '#00FF00' })
+      
+      // All splits should have the updated color
+      expect(store.projects[0]!.color).toBe('#00FF00')
+      expect(store.projects[1]!.color).toBe('#00FF00')
+    })
+    
+    it('should NOT synchronize userId changes across split projects', () => {
+      const store = usePlannerStore()
+      
+      store.addUser('Alice')
+      store.addUser('Bob')
+      const aliceId = store.users[0]!.id
+      const bobId = store.users[1]!.id
+      
+      const project = store.addProject({
+        name: 'Test',
+        userId: aliceId,
+        startDate: new Date(2026, 1, 16),
+        durationDays: 5,
+        bufferPercent: 0,
+        capacityPercent: 100,
+        color: '#FF0000',
+        zIndex: 1
+      })
+      
+      store.splitProject(project.id)
+      
+      // Move one split to Bob
+      const splitId = store.projects[1]!.id
+      store.updateProject(splitId, { userId: bobId })
+      
+      // Only the updated split should have Bob's ID
+      expect(store.projects[0]!.userId).toBe(aliceId)
+      expect(store.projects[1]!.userId).toBe(bobId)
+    })
+  })
+
+  describe('getSplitProjects', () => {
+    it('should return all related split projects', () => {
+      const store = usePlannerStore()
+      
+      const project = store.addProject({
+        name: 'Test Project',
+        userId: null,
+        startDate: new Date(2026, 1, 16),
+        durationDays: 5,
+        bufferPercent: 0,
+        capacityPercent: 100,
+        color: '#FF0000',
+        zIndex: 1
+      })
+      
+      store.splitProject(project.id)
+      store.splitProject(project.id)
+      
+      const splits = store.getSplitProjects(project.id)
+      
+      expect(splits).toHaveLength(3) // Parent + 2 splits
+    })
+
+    it('should return just the project if not split', () => {
+      const store = usePlannerStore()
+      
+      const project = store.addProject({
+        name: 'Test Project',
+        userId: null,
+        startDate: new Date(2026, 1, 16),
+        durationDays: 5,
+        bufferPercent: 0,
+        capacityPercent: 100,
+        color: '#FF0000',
+        zIndex: 1
+      })
+      
+      const splits = store.getSplitProjects(project.id)
+      
+      expect(splits).toHaveLength(1)
+      expect(splits[0]!.id).toBe(project.id)
+    })
+  })
+
+  describe('deleteProject with split cleanup', () => {
+    it('should convert parent to normal project when last split is deleted', () => {
+      const store = usePlannerStore()
+      
+      const project = store.addProject({
+        name: 'Test Project',
+        userId: null,
+        startDate: new Date(2026, 1, 16),
+        durationDays: 5,
+        bufferPercent: 0,
+        capacityPercent: 100,
+        color: '#FF0000',
+        zIndex: 1
+      })
+      
+      store.splitProject(project.id)
+      
+      // Now we have 2 projects (parent with 4 days + split with 1 day)
+      expect(store.projects).toHaveLength(2)
+      expect(store.projects[0]!.parentProjectId).toBe(project.id)
+      
+      // Delete the split
+      const splitId = store.projects[1]!.id
+      store.deleteProject(splitId)
+      
+      // Should have 1 project left, converted back to normal
+      expect(store.projects).toHaveLength(1)
+      expect(store.projects[0]!.parentProjectId).toBeUndefined()
+      expect(store.projects[0]!.originalDurationDays).toBeUndefined()
+      expect(store.projects[0]!.durationDays).toBe(5) // Restored to original duration
+    })
+
+    it('should not trigger cleanup if more than 2 splits remain', () => {
+      const store = usePlannerStore()
+      
+      const project = store.addProject({
+        name: 'Test Project',
+        userId: null,
+        startDate: new Date(2026, 1, 16),
+        durationDays: 5,
+        bufferPercent: 0,
+        capacityPercent: 100,
+        color: '#FF0000',
+        zIndex: 1
+      })
+      
+      store.splitProject(project.id)
+      store.splitProject(project.id)
+      
+      // Now we have 3 projects
+      expect(store.projects).toHaveLength(3)
+      
+      // Delete one split
+      const splitId = store.projects[2]!.id
+      store.deleteProject(splitId)
+      
+      // Should have 2 projects left, still marked as splits
+      expect(store.projects).toHaveLength(2)
+      expect(store.projects[0]!.parentProjectId).toBe(project.id)
+      expect(store.projects[1]!.parentProjectId).toBe(project.id)
+    })
+  })
 })

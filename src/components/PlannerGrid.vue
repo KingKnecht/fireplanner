@@ -57,12 +57,13 @@
             v-for="project in getProjectsForUser(user.id)"
             :key="project.id"
             :project="project"
-            :start-date="weekdays[0] || new Date()"
+            :weekdays="weekdays"
             :cell-height="cellHeight"
             :is-selected="project.id === selectedProjectId"
             @edit="handleEditProject"
             @drag-start="handleProjectDragStart"
             @drag-end="handleProjectDragEnd"
+            @split="handleSplitProject"
           />
         </div>
       </div>
@@ -86,12 +87,13 @@
             v-for="project in getProjectsForUser(null)"
             :key="project.id"
             :project="project"
-            :start-date="weekdays[0] || new Date()"
+            :weekdays="weekdays"
             :cell-height="cellHeight"
             :is-selected="project.id === selectedProjectId"
             @edit="handleEditProject"
             @drag-start="handleProjectDragStart"
             @drag-end="handleProjectDragEnd"
+            @split="handleSplitProject"
           />
         </div>
       </div>
@@ -118,6 +120,7 @@ const emit = defineEmits<{
   editProject: [project: Project]
   moveProject: [projectId: string, newUserId: string | null, newStartDate: Date]
   deleteUser: [userId: string]
+  splitProject: [project: Project]
 }>()
 
 const BASE_CELL_HEIGHT = 40
@@ -228,6 +231,10 @@ function handleEditProject(project: Project) {
   emit('editProject', project)
 }
 
+function handleSplitProject(project: Project) {
+  emit('splitProject', project)
+}
+
 function handleProjectDragStart(project: Project, offsetX: number, offsetY: number) {
   draggedProject.value = project
   dragOffsetX.value = offsetX
@@ -265,17 +272,6 @@ function handleDrop(event: DragEvent, userId: string | null) {
   if (cellIndex >= 0 && cellIndex < props.weekdays.length && props.weekdays[cellIndex]) {
     const newStartDate = new Date(props.weekdays[cellIndex]!)
     const project = draggedProject.value
-    
-    // Calculate duration in weekdays
-    let duration = 0
-    const current = new Date(project.startDate)
-    const end = new Date(project.endDate)
-    while (current <= end) {
-      if (current.getDay() !== 0 && current.getDay() !== 6) {
-        duration++
-      }
-      current.setDate(current.getDate() + 1)
-    }
     
     emit('moveProject', project.id, userId, newStartDate)
     

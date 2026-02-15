@@ -13,6 +13,7 @@ export interface CustomPropertyDefinition {
 }
 
 export interface Project {
+  
   id: string
   name: string
   userId: string | null  // null for unassigned
@@ -24,6 +25,9 @@ export interface Project {
   color: string
   zIndex: number  // z-depth for overlapping projects
   customProperties?: Record<string, string | number | boolean | Date | null>
+  parentProjectId?: string  // Set if this is a split from another project
+  originalDurationDays?: number  // Total duration across all split projects
+  overallDurationDays?: number  // Planned overall duration (for summary display only, not used for rendering)
 }
 
 export interface DateCell {

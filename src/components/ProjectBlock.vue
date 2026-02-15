@@ -5,7 +5,16 @@
        @click="handleClick"
        @dragstart="handleDragStart"
        @dragend="handleDragEnd">
-    <div class="project-name">{{ project.name }}</div>
+    <div class="project-content">
+      <div class="project-name">{{ project.name }}</div>
+    </div>
+    <button 
+      v-if="canSplit"
+      class="split-button"
+      @click.stop="handleSplit"
+      title="Split project">
+      ⚡
+    </button>
   </div>
 </template>
 
@@ -16,7 +25,7 @@ import { isSameDay } from '../utils/dateUtils'
 
 const props = defineProps<{
   project: Project
-  startDate: Date
+  weekdays: Date[]
   cellHeight: number
   isSelected?: boolean
 }>()
@@ -26,32 +35,21 @@ const emit = defineEmits<{
   delete: [project: Project]
   dragStart: [project: Project, offsetX: number, offsetY: number]
   dragEnd: []
+  split: [project: Project]
 }>()
 
+const canSplit = computed(() => {
+  return props.project.durationDays >= 1
+})
+
 const blockStyle = computed<CSSProperties>(() => {
-  // Safety check: if project is before grid start, don't render
-  if (props.project.startDate < props.startDate) {
-    return {
-      display: 'none'
-    }
-  }
+  // Find the index of the project's start date in the weekdays array
+  const topPosition = props.weekdays.findIndex(date => 
+    isSameDay(date, props.project.startDate)
+  )
   
-  // Calculate position
-  let topPosition = 0
-  const currentDate = new Date(props.startDate)
-  const maxIterations = 5000 // Safety limit to prevent infinite loops
-  let iterations = 0
-  
-  while (!isSameDay(currentDate, props.project.startDate) && iterations < maxIterations) {
-    if (currentDate.getDay() !== 0 && currentDate.getDay() !== 6) {
-      topPosition++
-    }
-    currentDate.setDate(currentDate.getDate() + 1)
-    iterations++
-  }
-  
-  // If we hit the limit, project is too far in the future - don't render
-  if (iterations >= maxIterations) {
+  // If project start date is not in the visible weekdays, don't render
+  if (topPosition === -1) {
     return {
       display: 'none'
     }
@@ -74,11 +72,8 @@ const blockStyle = computed<CSSProperties>(() => {
     border: props.isSelected ? '3px solid #2196F3' : '2px solid rgba(0, 0, 0, 0.3)',
     borderRadius: '4px',
     padding: '8px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
     cursor: 'move',
-    overflow: 'hidden',
+    overflow: 'visible',
     opacity: '0.85',
     zIndex: props.project.zIndex,
     boxShadow: props.isSelected ? '0 0 12px rgba(33, 150, 243, 0.5)' : 'none'
@@ -87,6 +82,10 @@ const blockStyle = computed<CSSProperties>(() => {
 
 function handleClick() {
   emit('edit', props.project)
+}
+
+function handleSplit() {
+  emit('split', props.project)
 }
 
 // function handleEdit() {
@@ -114,6 +113,8 @@ function handleDragEnd() {
 <style scoped>
 .project-block {
   transition: box-shadow 0.2s, opacity 0.2s, border 0.2s;
+  display: flex;
+  flex-direction: column;
 }
 
 .project-block:hover {
@@ -125,11 +126,47 @@ function handleDragEnd() {
   opacity: 0.7;
 }
 
+.project-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
 .project-name {
   font-weight: 600;
   font-size: 14px;
   text-align: center;
   color: #1a1a1a;
   user-select: none;
+}
+
+.split-button {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, transform 0.1s;
+  z-index: 10;
+}
+
+.split-button:hover {
+  background: rgba(255, 255, 255, 1);
+  transform: scale(1.1);
+}
+
+.split-button:active {
+  transform: scale(0.95);
 }
 </style>

@@ -33,6 +33,18 @@
         />
       </div>
 
+      <div v-if="isSplitProject" class="form-group">
+        <label>Overall Duration (days, for summary):</label>
+        <input 
+          v-model.number="form.overallDurationDays" 
+          type="number" 
+          step="0.5" 
+          min="0.5" 
+          max="300"
+          placeholder="e.g. 10"
+        />
+      </div>
+
       <div class="form-group">
         <label>Buffer:</label>
         <select v-model.number="form.bufferPercent">
@@ -173,17 +185,25 @@
       <div v-if="calculatedEndDate" class="calculated-info">
         <p><strong>Calculated End Date:</strong> {{ formatDate(calculatedEndDate) }}</p>
         <p><strong>Total Duration:</strong> {{ totalDuration }} days</p>
+        
+        <div v-if="isSplitProject" class="split-summary">
+          <hr class="divider" />
+          <p class="split-label">Split Project</p>
+          <p><strong>All Splits Duration:</strong> {{ totalSplitDuration }} / {{ originalDuration }} days</p>
+          <p><strong>This Block Duration:</strong> {{ form.durationDays }} / {{ originalDuration }} days</p>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, nextTick } from 'vue'
 import DatePicker from 'primevue/datepicker'
 import type { User, Project, CustomPropertyDefinition } from '../types'
 import { COLOR_PALETTE, calculateProjectEndDate } from '../utils/projectUtils'
-import { formatDate } from '../utils/dateUtils'
+import { formatDate, isWorkingDay } from '../utils/dateUtils'
+import { usePlannerStore } from '../stores/plannerStore'
 
 const props = defineProps<{
   users: User[]
@@ -215,6 +235,7 @@ const emit = defineEmits<{
     color: string
     zIndex: number
     customProperties: Record<string, string | number | boolean | Date | null>
+    overallDurationDays: number
   }>]
   updateZIndex: [projectId: string, zIndex: number]
   delete: []
@@ -223,6 +244,7 @@ const emit = defineEmits<{
 
 const colorPalette = COLOR_PALETTE
 const isUpdatingFromProject = ref(false)
+const store = usePlannerStore()
 
 // Helper to initialize custom properties with default values
 function initializeCustomProperties(): Record<string, string | number | boolean | Date | null> {
@@ -247,16 +269,39 @@ function initializeCustomProperties(): Record<string, string | number | boolean 
   return customProps
 }
 
+// Helper to get a valid working day as default start date
+const defaultStartDate = computed(() => {
+  const today = new Date()
+  
+  // If today is a working day, use it
+  if (isWorkingDay(today, store.workingDays)) {
+    return today
+  }
+  
+  // Otherwise find the next working day
+  const nextDay = new Date(today)
+  for (let i = 1; i <= 7; i++) {
+    nextDay.setDate(nextDay.getDate() + 1)
+    if (isWorkingDay(nextDay, store.workingDays)) {
+      return new Date(nextDay)
+    }
+  }
+  
+  // Fallback to today if no working day found in next week
+  return today
+})
+
 const form = ref({
   name: '',
   userId: null as string | null,
   durationDays: 1,
   bufferPercent: 0,
   capacityPercent: 100,
-  startDate: new Date() as Date,
+  startDate: new Date(),
   color: COLOR_PALETTE[0],
   zIndex: 1,
-  customProperties: {} as Record<string, string | number | boolean | Date | null>
+  customProperties: {} as Record<string, string | number | boolean | Date | null>,
+  overallDurationDays: undefined as number | undefined
 })
 
 // Clamp duration to reasonable maximum to prevent performance issues
@@ -265,6 +310,22 @@ watch(() => form.value.durationDays, (newDuration) => {
     form.value.durationDays = 300
   } else if (newDuration < 0.5) {
     form.value.durationDays = 0.5
+  }
+})
+
+// Update form start date when working days change and no project is selected
+watch(() => store.workingDays, () => {
+  if (!props.selectedProject && !props.newProjectData) {
+    form.value.startDate = new Date(defaultStartDate.value)
+  }
+})
+
+// Clamp overall duration to reasonable maximum
+watch(() => form.value.overallDurationDays, (newDuration) => {
+  if (newDuration !== undefined && newDuration > 300) {
+    form.value.overallDurationDays = 300
+  } else if (newDuration !== undefined && newDuration < 0.5) {
+    form.value.overallDurationDays = 0.5
   }
 })
 
@@ -292,6 +353,28 @@ const totalDuration = computed(() => {
   const withBuffer = base * (1 + form.value.bufferPercent / 100)
   const withCapacity = withBuffer / (form.value.capacityPercent / 100)
   return Math.ceil(withCapacity * 2) / 2
+})
+
+// Split project information
+const isSplitProject = computed(() => {
+  if (!props.selectedProject) return false
+  return !!props.selectedProject.parentProjectId || 
+    (props.selectedProject.originalDurationDays !== undefined && 
+     props.selectedProject.originalDurationDays > props.selectedProject.durationDays)
+})
+
+const totalSplitDuration = computed(() => {
+  if (!props.selectedProject || !isSplitProject.value) return 0
+  
+  const parentId = props.selectedProject.parentProjectId || props.selectedProject.id
+  const splits = store.getSplitProjects(parentId)
+  
+  return splits.reduce((sum, p) => sum + p.durationDays, 0)
+})
+
+const originalDuration = computed(() => {
+  if (!props.selectedProject) return 0
+  return props.selectedProject.overallDurationDays || props.selectedProject.originalDurationDays || props.selectedProject.durationDays
 })
 
 // Validation for required custom properties
@@ -337,12 +420,31 @@ watch(() => props.selectedProject, (project) => {
       startDate: new Date(project.startDate),
       color: project.color,
       zIndex: project.zIndex,
-      customProperties: mergedProps
+      customProperties: mergedProps,
+      overallDurationDays: project.overallDurationDays
     }
-    // Use nextTick to ensure the form is updated before re-enabling the watch
-    setTimeout(() => {
+    nextTick(() => {
       isUpdatingFromProject.value = false
-    }, 0)
+    })
+  } else {
+    // No project selected - reset to default values with working day
+    isUpdatingFromProject.value = true
+    const defaultDate = new Date(defaultStartDate.value)
+    form.value = {
+      name: '',
+      userId: null,
+      durationDays: 1,
+      bufferPercent: 0,
+      capacityPercent: 100,
+      startDate: defaultDate,
+      color: COLOR_PALETTE[0],
+      zIndex: 1,
+      customProperties: initializeCustomProperties(),
+      overallDurationDays: undefined
+    }
+    nextTick(() => {
+      isUpdatingFromProject.value = false
+    })
   }
 }, { immediate: true })
 
@@ -358,13 +460,14 @@ watch(() => props.newProjectData, (data) => {
       startDate: new Date(data.startDate),
       color: COLOR_PALETTE[0],
       zIndex: 1,
-      customProperties: initializeCustomProperties()
+      customProperties: initializeCustomProperties(),
+      overallDurationDays: undefined
     }
   }
 }, { immediate: true })
 
 // Watch other form fields for live updates on existing projects
-watch(() => [form.value.name, form.value.userId, form.value.durationDays, form.value.bufferPercent, form.value.capacityPercent, form.value.startDate, form.value.color, form.value.customProperties], () => {
+watch(() => [form.value.name, form.value.userId, form.value.durationDays, form.value.bufferPercent, form.value.capacityPercent, form.value.startDate, form.value.color, form.value.customProperties, form.value.overallDurationDays], () => {
   if (!props.selectedProject || !form.value.startDate || isUpdatingFromProject.value) return
   
   const updates: Partial<{
@@ -376,6 +479,7 @@ watch(() => [form.value.name, form.value.userId, form.value.durationDays, form.v
     capacityPercent: number
     color: string
     customProperties: Record<string, string | number | boolean | Date | null>
+    overallDurationDays: number | undefined
   }> = {}
   
   if (form.value.name !== props.selectedProject.name) updates.name = form.value.name
@@ -384,6 +488,7 @@ watch(() => [form.value.name, form.value.userId, form.value.durationDays, form.v
   if (form.value.bufferPercent !== props.selectedProject.bufferPercent) updates.bufferPercent = form.value.bufferPercent
   if (form.value.capacityPercent !== props.selectedProject.capacityPercent) updates.capacityPercent = form.value.capacityPercent
   if (form.value.color !== props.selectedProject.color) updates.color = form.value.color
+  if (form.value.overallDurationDays !== props.selectedProject.overallDurationDays) updates.overallDurationDays = form.value.overallDurationDays
   
   // Check if custom properties changed
   const currentCustomProps = JSON.stringify(props.selectedProject.customProperties || {})
@@ -443,10 +548,11 @@ function handleClear() {
     durationDays: 1,
     bufferPercent: 0,
     capacityPercent: 100,
-    startDate: new Date(),
+    startDate: new Date(defaultStartDate.value),
     color: COLOR_PALETTE[0],
     zIndex: 1,
-    customProperties: initializeCustomProperties()
+    customProperties: initializeCustomProperties(),
+    overallDurationDays: undefined
   }
   emit('clear')
 }
@@ -612,6 +718,23 @@ function handleClear() {
   margin: 4px 0;
 }
 
+.split-summary {
+  margin-top: 12px;
+}
+
+.split-summary .divider {
+  border: none;
+  border-top: 1px solid #ddd;
+  margin: 8px 0;
+}
+
+.split-summary .split-label {
+  color: #2196F3;
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
 .custom-properties-section {
   margin-top: 24px;
   padding-top: 24px;
@@ -702,6 +825,14 @@ function handleClear() {
 .dark-mode .calculated-info {
   background: #2a2a2a;
   color: #b0b0b0;
+}
+
+.dark-mode .split-summary .divider {
+  border-top-color: #3a3a3a;
+}
+
+.dark-mode .split-summary .split-label {
+  color: #42A5F5;
 }
 
 .dark-mode .color-swatch.selected {

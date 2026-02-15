@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import ProjectBlock from './ProjectBlock.vue'
 import type { Project } from '../types'
+import { getWeekdaysBetween } from '../utils/dateUtils'
 
 describe('ProjectBlock.vue', () => {
   const mockProject: Project = {
@@ -16,10 +17,16 @@ describe('ProjectBlock.vue', () => {
     color: '#FF0000',
     zIndex: 1
   }
+  
+  const weekdays = getWeekdaysBetween(
+    new Date(2026, 1, 16), 
+    new Date(2026, 1, 27), 
+    [1, 2, 3, 4, 5] // Mon-Fri
+  )
 
   const defaultProps = {
     project: mockProject,
-    startDate: new Date(2026, 1, 16),
+    weekdays: weekdays,
     cellHeight: 40,
     isSelected: false
   }
