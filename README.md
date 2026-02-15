@@ -4,7 +4,7 @@ A visual project planning desktop application that helps teams organize and trac
 
 FirePlanner displays projects as colored blocks in a grid where each column represents a team member and each row represents a weekday. This makes it easy to see who's working on what and when projects overlap.
 
-![FirePlanner Screenshot](./screenshots/main-window.png)
+![FirePlanner Screenshot](./screenshots/window-main.png)
 
 ## Quick Start
 
