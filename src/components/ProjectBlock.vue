@@ -28,6 +28,9 @@ const props = defineProps<{
   weekdays: Date[]
   cellHeight: number
   isSelected?: boolean
+  lane?: number
+  maxLanes?: number
+  laneOffset?: number
 }>()
 
 const emit = defineEmits<{
@@ -62,12 +65,17 @@ const blockStyle = computed<CSSProperties>(() => {
   const roundedDuration = Math.ceil(adjustedDuration * 2) / 2
   const height = roundedDuration
 
+  // Calculate left position based on lane offset
+  const leftPosition = props.laneOffset !== undefined 
+    ? `calc(${props.laneOffset}% + 2px)`
+    : '2px'
+
   return {
     top: `${topPosition * props.cellHeight}px`,
     height: `${height * props.cellHeight - 4}px`,
     backgroundColor: props.project.color,
     position: 'absolute',
-    left: '2px',
+    left: leftPosition,
     width: `calc(${props.project.capacityPercent}% - 4px)`,
     border: props.isSelected ? '3px solid #2196F3' : '2px solid rgba(0, 0, 0, 0.3)',
     borderRadius: '4px',

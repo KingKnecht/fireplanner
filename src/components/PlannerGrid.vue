@@ -60,6 +60,9 @@
             :weekdays="weekdays"
             :cell-height="cellHeight"
             :is-selected="project.id === selectedProjectId"
+            :lane="getLaneInfo(user.id, project.id).lane"
+            :max-lanes="getLaneInfo(user.id, project.id).maxLanes"
+            :lane-offset="getLaneInfo(user.id, project.id).offset"
             @edit="handleEditProject"
             @drag-start="handleProjectDragStart"
             @drag-end="handleProjectDragEnd"
@@ -90,6 +93,9 @@
             :weekdays="weekdays"
             :cell-height="cellHeight"
             :is-selected="project.id === selectedProjectId"
+            :lane="getLaneInfo(null, project.id).lane"
+            :max-lanes="getLaneInfo(null, project.id).maxLanes"
+            :lane-offset="getLaneInfo(null, project.id).offset"
             @edit="handleEditProject"
             @drag-start="handleProjectDragStart"
             @drag-end="handleProjectDragEnd"
@@ -102,10 +108,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import ProjectBlock from './ProjectBlock.vue'
 import type { User, Project } from '../types'
 import { formatDate, isWeekend } from '../utils/dateUtils'
+import { assignProjectLanes } from '../utils/projectUtils'
+import { usePlannerStore } from '../stores/plannerStore'
+
+const store = usePlannerStore()
 
 const props = defineProps<{
   users: User[]
@@ -134,6 +144,34 @@ const cellHeight = ref(BASE_CELL_HEIGHT)
 const draggedProject = ref<Project | null>(null)
 const dragOffsetX = ref(0)
 const dragOffsetY = ref(0)
+
+// Calculate lane assignments for each user
+const userLaneAssignments = computed(() => {
+  const assignments = new Map<string, Map<string, { lane: number; maxLanes: number; offset: number }>>()
+  
+  // Calculate lanes for each user
+  for (const user of props.users) {
+    const userProjects = props.getProjectsForUser(user.id)
+    const lanes = assignProjectLanes(userProjects, store.workingDays)
+    assignments.set(user.id, lanes)
+  }
+  
+  // Calculate lanes for unassigned projects
+  if (props.showUnassigned) {
+    const unassignedProjects = props.getProjectsForUser(null)
+    const lanes = assignProjectLanes(unassignedProjects, store.workingDays)
+    assignments.set('unassigned', lanes)
+  }
+  
+  return assignments
+})
+
+// Helper function to get lane info for a project
+function getLaneInfo(userId: string | null, projectId: string) {
+  const key = userId || 'unassigned'
+  const userLanes = userLaneAssignments.value.get(key)
+  return userLanes?.get(projectId) || { lane: 0, maxLanes: 1, offset: 0 }
+}
 
 function zoomIn() {
   if (zoomLevel.value < MAX_ZOOM) {

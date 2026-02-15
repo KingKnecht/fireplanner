@@ -67,12 +67,28 @@
 
       <div class="form-group">
         <label>Capacity:</label>
-        <select v-model.number="form.capacityPercent">
-          <option :value="33">33%</option>
-          <option :value="50">50%</option>
-          <option :value="75">75%</option>
-          <option :value="100">100%</option>
-        </select>
+        <div class="capacity-input-group">
+          <input 
+            v-model.number="form.capacityPercent" 
+            type="number" 
+            min="1" 
+            max="100" 
+            step="1"
+          />
+          <span class="percentage-symbol">%</span>
+        </div>
+        <div class="capacity-presets">
+          <button 
+            v-for="preset in [20, 25, 33, 50, 75, 100]" 
+            :key="preset"
+            type="button"
+            class="preset-button"
+            :class="{ active: form.capacityPercent === preset }"
+            @click="form.capacityPercent = preset"
+          >
+            {{ preset }}%
+          </button>
+        </div>
       </div>
 
       <div class="form-group">
@@ -691,6 +707,52 @@ function handleClear() {
   box-shadow: 0 0 0 2px white, 0 0 0 4px #2c3e50;
 }
 
+.capacity-input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.capacity-input-group input[type="number"] {
+  flex: 1;
+  padding-right: 30px;
+}
+
+.percentage-symbol {
+  position: absolute;
+  right: 10px;
+  color: #666;
+  pointer-events: none;
+}
+
+.capacity-presets {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.preset-button {
+  padding: 4px 12px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.preset-button:hover {
+  background: #f0f0f0;
+  border-color: #999;
+}
+
+.preset-button.active {
+  background: #2c3e50;
+  color: white;
+  border-color: #2c3e50;
+}
+
 .form-actions {
   display: flex;
   gap: 8px;
@@ -940,5 +1002,26 @@ function handleClear() {
 .dark-mode .btn-primary:disabled {
   background: #3a3a3a;
   color: #666666;
+}
+
+.dark-mode .percentage-symbol {
+  color: #888;
+}
+
+.dark-mode .preset-button {
+  background: #2a2a2a;
+  border-color: #3a3a3a;
+  color: #e0e0e0;
+}
+
+.dark-mode .preset-button:hover {
+  background: #3a3a3a;
+  border-color: #4a4a4a;
+}
+
+.dark-mode .preset-button.active {
+  background: #4CAF50;
+  border-color: #4CAF50;
+  color: white;
 }
 </style>
