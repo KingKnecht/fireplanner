@@ -17,6 +17,7 @@ describe('ProjectBlock.vue', () => {
     estimatedProgress: 0,
     timeSpent: 0,
     color: '#FF0000',
+    deadline: new Date(2026, 3, 3),   // 6 weeks after end date
     zIndex: 1
   }
   

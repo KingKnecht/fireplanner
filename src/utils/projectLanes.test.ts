@@ -10,6 +10,8 @@ describe('projectLanes', () => {
     capacityPercent: number = 100
   ): Project => {
     const endDate = calculateProjectEndDate(startDate, durationDays, 0, capacityPercent)
+    const deadline = new Date(endDate)
+    deadline.setDate(deadline.getDate() + 42) // 6 weeks after end date
     return {
       id,
       name: `Project ${id}`,
@@ -22,6 +24,7 @@ describe('projectLanes', () => {
       estimatedProgress: 0,
       timeSpent: 0,
       color: '#FF0000',
+      deadline,
       customProperties: {},
       zIndex: 0
     }

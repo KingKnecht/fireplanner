@@ -82,9 +82,11 @@ export function getDatePickerFormat(locale?: string): string {
   
   // Try language code only (e.g., 'en' from 'en-CA')
   const languageCode = loc.split('-')[0]
-  const languageMatch = Object.keys(localeFormatMap).find(key => key.startsWith(languageCode))
-  if (languageMatch) {
-    return localeFormatMap[languageMatch]
+  if (languageCode) {
+    const languageMatch = Object.keys(localeFormatMap).find(key => key.startsWith(languageCode))
+    if (languageMatch && localeFormatMap[languageMatch]) {
+      return localeFormatMap[languageMatch]
+    }
   }
   
   // Default to European format (day/month/year)
