@@ -27,6 +27,7 @@ export interface Project {
   timeSpent: number  // Actual days spent (can be 0.5, 1, 1.5, etc.)
   color: string
   zIndex: number  // z-depth for overlapping projects
+  deadline: Date  // Project deadline date
   customProperties?: Record<string, string | number | boolean | Date | null>
   parentProjectId?: string  // Set if this is a split from another project
   originalDurationDays?: number  // Total duration across all split projects

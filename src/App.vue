@@ -200,6 +200,7 @@ function handleCopy() {
     userId: selectedProject.value.userId,
     startDate: selectedProject.value.startDate,
     endDate: selectedProject.value.endDate,
+    deadline: selectedProject.value.deadline,
     durationDays: selectedProject.value.durationDays,
     bufferPercent: selectedProject.value.bufferPercent,
     capacityPercent: selectedProject.value.capacityPercent,
@@ -223,6 +224,7 @@ function handleCut() {
     userId: selectedProject.value.userId,
     startDate: selectedProject.value.startDate,
     endDate: selectedProject.value.endDate,
+    deadline: selectedProject.value.deadline,
     durationDays: selectedProject.value.durationDays,
     bufferPercent: selectedProject.value.bufferPercent,
     capacityPercent: selectedProject.value.capacityPercent,
@@ -330,6 +332,7 @@ async function handleSave() {
       userId: p.userId,
       startDate: p.startDate.toISOString(),
       endDate: p.endDate.toISOString(),
+      deadline: p.deadline.toISOString(),
       durationDays: p.durationDays,
       bufferPercent: p.bufferPercent,
       capacityPercent: p.capacityPercent,
@@ -392,6 +395,7 @@ async function handleSaveAs() {
       userId: p.userId,
       startDate: p.startDate.toISOString(),
       endDate: p.endDate.toISOString(),
+      deadline: p.deadline.toISOString(),
       durationDays: p.durationDays,
       bufferPercent: p.bufferPercent,
       capacityPercent: p.capacityPercent,
@@ -459,6 +463,7 @@ async function handleLoad() {
         ...p,
         startDate: new Date(p.startDate),
         endDate: new Date(p.endDate),
+        deadline: p.deadline ? new Date(p.deadline) : new Date(new Date(p.endDate).getTime() + 42 * 24 * 60 * 60 * 1000),
         capacityPercent: p.capacityPercent ?? 100,
         estimatedProgress: p.estimatedProgress ?? 0,
         timeSpent: p.timeSpent ?? 0,
@@ -524,6 +529,7 @@ async function handleOpenRecentFile(filePath: string) {
         ...p,
         startDate: new Date(p.startDate),
         endDate: new Date(p.endDate),
+        deadline: p.deadline ? new Date(p.deadline) : new Date(new Date(p.endDate).getTime() + 42 * 24 * 60 * 60 * 1000),
         capacityPercent: p.capacityPercent ?? 100,
         estimatedProgress: p.estimatedProgress ?? 0,
         timeSpent: p.timeSpent ?? 0,
@@ -618,6 +624,7 @@ async function performAutosave() {
       userId: p.userId,
       startDate: p.startDate.toISOString(),
       endDate: p.endDate.toISOString(),
+      deadline: p.deadline.toISOString(),
       durationDays: p.durationDays,
       bufferPercent: p.bufferPercent,
       capacityPercent: p.capacityPercent,
@@ -709,6 +716,7 @@ function handleProjectCreate(data: {
   timeSpent: number
   color: string
   zIndex: number
+  deadline: Date
   customProperties?: Record<string, string | number | boolean | Date | null>
 }) {
   const project = store.addProject(data)
@@ -730,6 +738,7 @@ function handleProjectUpdate(projectId: string, updates: Partial<{
   timeSpent: number
   color: string
   zIndex: number
+  deadline: Date
   customProperties: Record<string, string | number | boolean | Date | null>
   overallDurationDays: number | undefined
 }>) {

@@ -127,6 +127,16 @@
       </div>
 
       <div class="form-group">
+        <label>Deadline:</label>
+        <DatePicker 
+          v-model="form.deadline" 
+          dateFormat="dd.mm.yy"
+          showIcon
+          :showOnFocus="false"
+        />
+      </div>
+
+      <div class="form-group">
         <label>Color Palette:</label>
         <div class="color-palette">
           <div
@@ -292,6 +302,7 @@ const emit = defineEmits<{
     timeSpent: number
     color: string
     zIndex: number
+    deadline: Date
     customProperties?: Record<string, string | number | boolean | Date | null>
   }]
   update: [projectId: string, data: Partial<{
@@ -305,6 +316,7 @@ const emit = defineEmits<{
     timeSpent: number
     color: string
     zIndex: number
+    deadline: Date
     customProperties: Record<string, string | number | boolean | Date | null>
     overallDurationDays: number
   }>]
@@ -373,6 +385,7 @@ const form = ref({
   estimatedProgress: 0,
   timeSpent: 0,
   startDate: new Date(),
+  deadline: new Date(),
   color: COLOR_PALETTE[0],
   zIndex: 1,
   customProperties: {} as Record<string, string | number | boolean | Date | null>,
@@ -500,6 +513,7 @@ watch(() => props.selectedProject, (project) => {
       estimatedProgress: project.estimatedProgress ?? 0,
       timeSpent: project.timeSpent ?? 0,
       startDate: new Date(project.startDate),
+      deadline: new Date(project.deadline),
       color: project.color,
       zIndex: project.zIndex,
       customProperties: mergedProps,
@@ -512,6 +526,8 @@ watch(() => props.selectedProject, (project) => {
     // No project selected - reset to default values with working day
     isUpdatingFromProject.value = true
     const defaultDate = new Date(defaultStartDate.value)
+    const defaultDeadlineDate = new Date(defaultDate)
+    defaultDeadlineDate.setDate(defaultDeadlineDate.getDate() + 47) // ~1 day duration + 6 weeks
     form.value = {
       name: '',
       userId: null,
@@ -521,6 +537,7 @@ watch(() => props.selectedProject, (project) => {
       estimatedProgress: 0,
       timeSpent: 0,
       startDate: defaultDate,
+      deadline: defaultDeadlineDate,
       color: COLOR_PALETTE[0],
       zIndex: 1,
       customProperties: initializeCustomProperties(),
@@ -535,6 +552,8 @@ watch(() => props.selectedProject, (project) => {
 // Watch newProjectData to pre-fill form when double-clicking a cell
 watch(() => props.newProjectData, (data) => {
   if (data && !props.selectedProject) {
+    const defaultDeadlineDate = new Date(data.startDate)
+    defaultDeadlineDate.setDate(defaultDeadlineDate.getDate() + 47) // ~1 day duration + 6 weeks
     form.value = {
       name: '',
       userId: data.userId,
@@ -544,6 +563,7 @@ watch(() => props.newProjectData, (data) => {
       estimatedProgress: 0,
       timeSpent: 0,
       startDate: new Date(data.startDate),
+      deadline: defaultDeadlineDate,
       color: COLOR_PALETTE[0],
       zIndex: 1,
       customProperties: initializeCustomProperties(),
@@ -553,7 +573,7 @@ watch(() => props.newProjectData, (data) => {
 }, { immediate: true })
 
 // Watch other form fields for live updates on existing projects
-watch(() => [form.value.name, form.value.userId, form.value.durationDays, form.value.bufferPercent, form.value.capacityPercent, form.value.estimatedProgress, form.value.timeSpent, form.value.startDate, form.value.color, form.value.customProperties, form.value.overallDurationDays], () => {
+watch(() => [form.value.name, form.value.userId, form.value.durationDays, form.value.bufferPercent, form.value.capacityPercent, form.value.estimatedProgress, form.value.timeSpent, form.value.startDate, form.value.deadline, form.value.color, form.value.customProperties, form.value.overallDurationDays], () => {
   if (!props.selectedProject || !form.value.startDate || isUpdatingFromProject.value) return
   
   const updates: Partial<{
@@ -566,6 +586,7 @@ watch(() => [form.value.name, form.value.userId, form.value.durationDays, form.v
     estimatedProgress: number
     timeSpent: number
     color: string
+    deadline: Date
     customProperties: Record<string, string | number | boolean | Date | null>
     overallDurationDays: number | undefined
   }> = {}
@@ -592,6 +613,11 @@ watch(() => [form.value.name, form.value.userId, form.value.durationDays, form.v
     updates.startDate = newStartDate
   }
   
+  const newDeadline = new Date(form.value.deadline)
+  if (newDeadline.getTime() !== props.selectedProject.deadline.getTime()) {
+    updates.deadline = newDeadline
+  }
+  
   if (Object.keys(updates).length > 0) {
     emit('update', props.selectedProject.id, updates)
   }
@@ -610,6 +636,7 @@ function handleCreate() {
     name: form.value.name,
     userId: form.value.userId,
     startDate: new Date(form.value.startDate),
+    deadline: new Date(form.value.deadline),
     durationDays: form.value.durationDays,
     bufferPercent: form.value.bufferPercent,
     capacityPercent: form.value.capacityPercent,
@@ -729,6 +756,9 @@ function bringToFront() {
 }
 
 function handleClear() {
+  const defaultDate = new Date(defaultStartDate.value)
+  const defaultDeadlineDate = new Date(defaultDate)
+  defaultDeadlineDate.setDate(defaultDeadlineDate.getDate() + 47) // ~1 day duration + 6 weeks
   form.value = {
     name: '',
     userId: null,
@@ -737,7 +767,8 @@ function handleClear() {
     capacityPercent: 100,
     estimatedProgress: 0,
     timeSpent: 0,
-    startDate: new Date(defaultStartDate.value),
+    startDate: defaultDate,
+    deadline: defaultDeadlineDate,
     color: COLOR_PALETTE[0],
     zIndex: 1,
     customProperties: initializeCustomProperties(),

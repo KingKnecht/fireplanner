@@ -39,7 +39,7 @@ export const usePlannerStore = defineStore('planner', () => {
     users.value = users.value.filter(u => u.id !== userId)
   }
 
-  function addProject(project: Omit<Project, 'id' | 'endDate' | 'zIndex'> & { zIndex?: number }) {
+  function addProject(project: Omit<Project, 'id' | 'endDate' | 'zIndex' | 'deadline'> & { zIndex?: number; deadline?: Date }) {
     const projectEndDate = calculateProjectEndDate(
       project.startDate,
       project.durationDays,
@@ -47,6 +47,10 @@ export const usePlannerStore = defineStore('planner', () => {
       project.capacityPercent,
       workingDays.value
     )
+    
+    // Calculate default deadline: end date + 6 weeks
+    const defaultDeadline = new Date(projectEndDate)
+    defaultDeadline.setDate(defaultDeadline.getDate() + 42) // 6 weeks = 42 days
     
     // Auto-expand date range if project is outside current range
     if (project.startDate < startDate.value) {
@@ -60,6 +64,7 @@ export const usePlannerStore = defineStore('planner', () => {
       ...project,
       id: nanoid(10),
       endDate: projectEndDate,
+      deadline: project.deadline ?? defaultDeadline,
       zIndex: project.zIndex ?? 1,
       estimatedProgress: project.estimatedProgress ?? 0,
       timeSpent: project.timeSpent ?? 0,
@@ -86,6 +91,7 @@ export const usePlannerStore = defineStore('planner', () => {
         timeSpent: updates.timeSpent ?? currentProject.timeSpent,
         color: updates.color ?? currentProject.color,
         zIndex: updates.zIndex !== undefined ? updates.zIndex : currentProject.zIndex,
+        deadline: updates.deadline ?? currentProject.deadline,
         customProperties: updates.customProperties !== undefined ? updates.customProperties : currentProject.customProperties,
         parentProjectId: updates.parentProjectId !== undefined ? updates.parentProjectId : currentProject.parentProjectId,
         originalDurationDays: updates.originalDurationDays !== undefined ? updates.originalDurationDays : currentProject.originalDurationDays,
