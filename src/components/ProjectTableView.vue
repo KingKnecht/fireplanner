@@ -280,6 +280,11 @@ const onCellEditComplete = (event: any) => {
           </select>
         </template>
       </Column>
+      <!-- Date columns use native HTML date input instead of PrimeVue DatePicker
+           because DatePicker is incompatible with DataTable cell editing mode:
+           clicking the calendar popup is treated as clicking outside the cell,
+           which closes the editor before a date can be selected.
+           See: https://github.com/primefaces/primevue/issues/7710 -->
       <Column field="startDate" header="Start Date" :sortable="true" style="min-width: 120px">
         <template #body="slotProps">
           {{ formatDate(slotProps.data.startDate) }}
