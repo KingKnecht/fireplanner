@@ -5,7 +5,7 @@ All notable changes to FirePlanner will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.4.0]
+## [0.4.0] - 2026-02-18
 
 ### Added
 - **Locale Support**: Full internationalization with configurable locale in `config.json`
@@ -65,5 +65,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Configurable autosave via config.json
 - Electron desktop application for Linux, Windows, and macOS
 
-[0.3.0]: https://github.com/yourusername/fireplanner/releases/tag/v0.3.0
-[0.1.0]: https://github.com/yourusername/fireplanner/releases/tag/v0.1.0
+[0.4.0]: https://github.com/kingknecht/fireplanner/releases/tag/v0.4.0
+[0.3.0]: https://github.com/kingknecht/fireplanner/releases/tag/v0.3.0
+[0.1.0]: https://github.com/kingknecht/fireplanner/releases/tag/v0.1.0
