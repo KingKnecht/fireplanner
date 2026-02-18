@@ -506,12 +506,37 @@ const onCellEditComplete = (event: any) => {
 .project-table-view {
   width: 100%;
   height: 100%;
-  overflow: auto;
+  overflow-x: auto;
+  overflow-y: auto;
   background-color: #ffffff;
+  /* Force scrollbars to always be visible when needed */
+  scrollbar-width: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Ensure scrollbars are visible in webkit browsers */
+.project-table-view::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.project-table-view::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.project-table-view::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 6px;
+}
+
+.project-table-view::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
 
 .project-table {
   font-size: 14px;
+  min-width: 100%;
+  width: max-content;
 }
 
 /* Editor styling */
@@ -691,6 +716,19 @@ const onCellEditComplete = (event: any) => {
 /* Dark mode styles - unscoped to override PrimeVue */
 .dark-mode .project-table-view {
   background-color: #1e1e1e !important;
+}
+
+/* Dark mode scrollbar styling */
+.dark-mode .project-table-view::-webkit-scrollbar-track {
+  background: #2a2a2a;
+}
+
+.dark-mode .project-table-view::-webkit-scrollbar-thumb {
+  background: #555;
+}
+
+.dark-mode .project-table-view::-webkit-scrollbar-thumb:hover {
+  background: #777;
 }
 
 .dark-mode .project-table {

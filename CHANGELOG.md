@@ -5,6 +5,27 @@ All notable changes to FirePlanner will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0]
+
+### Added
+- **Locale Support**: Full internationalization with configurable locale in `config.json`
+  - Date formatting respects locale settings (e.g., `en-US`: 02/18/2026, `de-DE`: 18.02.2026)
+  - Number formatting adapts to locale conventions
+  - PrimeVue DatePicker components automatically use locale-appropriate formats
+  - Supports 14+ locales including en-US, en-GB, de-DE, fr-FR, es-ES, ja-JP, zh-CN, and more
+  - Uses standard IETF BCP 47 language tags
+- **Enum Custom Properties**: Dropdown fields with predefined options for project metadata
+  - Define custom enum properties in `config.json` with display names and numeric values
+  - Allows renaming options in UI without breaking existing project data
+  - Dropdown selection in project editor panel and table view
+  - Supports multiple enum fields per project (e.g., "Billing Mode", "Status", "Priority Level")
+
+### Fixed
+- **Table View Scrollbar**: Horizontal scrollbar now appears correctly when table has many columns
+  - Added custom scrollbar styling for better visibility in light and dark modes
+  - Table now expands properly to show all columns with overflow scrolling
+  - Fixed scrollbar appearance in webkit browsers (Chrome, Edge, Safari)
+
 ## [0.3.0] - 2026-02-15
 
 ### Added

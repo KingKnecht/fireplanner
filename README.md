@@ -4,7 +4,8 @@ A visual project planning desktop application that helps teams organize and trac
 
 FirePlanner displays projects as colored blocks in a grid where each column represents a team member and each row represents a weekday. This makes it easy to see who's working on what and when projects overlap.
 
-![FirePlanner Screenshot](./screenshots/window-main.png)
+![FirePlanner Grid View Screenshot](./screenshots/window-main.png)
+![FirePlanner Table View Screenshot](./screenshots/table_view.png)
 
 ## Quick Start
 
@@ -34,6 +35,7 @@ The bundled `config.json` in the project root serves as the default configuratio
 
 ```json
 {
+  "locale": "de-DE",
   "autosave": {
     "enabled": true,
     "intervalSeconds": 30,
@@ -43,6 +45,21 @@ The bundled `config.json` in the project root serves as the default configuratio
   "customProperties": []
 }
 ```
+
+#### Locale Settings
+
+- **`locale`** (string): Controls date and number formatting throughout the application
+  - Default: `"de-DE"` (German format)
+  - Common values:
+    - `"en-US"` — US English (dates: 02/18/2026, numbers: 1,234.56)
+    - `"en-GB"` — British English (dates: 18/02/2026, numbers: 1,234.56)
+    - `"de-DE"` — German (dates: 18.02.2026, numbers: 1.234,56)
+    - `"fr-FR"` — French (dates: 18/02/2026, numbers: 1 234,56)
+    - `"es-ES"` — Spanish (dates: 18/02/2026, numbers: 1.234,56)
+    - `"ja-JP"` — Japanese (dates: 2026/02/18, numbers: 1,234.56)
+  - Uses standard [IETF BCP 47 language tags](https://en.wikipedia.org/wiki/IETF_language_tag)
+  - Affects: date pickers, date displays, and number formatting throughout the UI
+  - **Requires application restart** to take effect
 
 #### Autosave Settings
 
@@ -67,7 +84,26 @@ Define additional metadata fields for your projects. Each property definition ha
 - **`required`** (boolean): Whether the field must be filled when creating projects
 - **`values`** (object, for enum type only): Maps display names to numeric values
 
-**Example:**
+**Supported Types:**
+
+| Type | Description | Example Values |
+|------|-------------|----------------|
+| `string` | Text input | "ABC-123", "Internal", "Q1 2026" |
+| `number` | Integer input | 1, 42, 999 |
+| `float` | Decimal input | 2.5, 99.95, 0.333 |
+| `boolean` | Checkbox (Yes/No) | true, false |
+| `Date` | Date picker (locale-aware) | 2026-02-18 |
+| `enum` | Dropdown with predefined options | See below |
+
+**Enum Properties:**
+
+Enum properties provide a dropdown menu with predefined options. Each option has:
+- A **display name** (shown to users)
+- A **numeric value** (stored in the project file)
+
+This allows you to rename options in the UI without breaking existing data.
+
+**Example Configuration:**
 ```json
 {
   "customProperties": [
@@ -82,8 +118,8 @@ Define additional metadata fields for your projects. Each property definition ha
       "required": false
     },
     {
-      "name": "Deadline",
-      "type": "Date",
+      "name": "KIP Factor",
+      "type": "float",
       "required": false
     },
     {
@@ -92,18 +128,49 @@ Define additional metadata fields for your projects. Each property definition ha
       "required": false
     },
     {
-      "name": "Mode",
-      "type": "enum",
-      "values": {"Time&Material": 1, "Fixed Price": 2},
+      "name": "Deadline",
+      "type": "Date",
       "required": false
+    },
+    {
+      "name": "Billing Mode",
+      "type": "enum",
+      "values": {
+        "Time & Material": 1,
+        "Fixed Price": 2,
+        "Retainer": 3
+      },
+      "required": false
+    },
+    {
+      "name": "Status",
+      "type": "enum",
+      "values": {
+        "Planning": 1,
+        "In Progress": 2,
+        "On Hold": 3,
+        "Completed": 4
+      },
+      "required": true
     }
   ]
 }
 ```
 
-Custom properties appear as collapsible fields in the project editor panel.
+**Enum Best Practices:**
+- Use descriptive display names (e.g., "Time & Material" instead of "TM")
+- Assign sequential numeric values starting from 1
+- Never reuse numeric values for different options
+- To rename an option: change the display name but keep the same numeric value
+- To add a new option: use a new numeric value
+- Don't delete options that existing projects might use
 
-**Note:** After modifying `config.json`, restart the application or use File → Reload Config for changes to take effect.
+Custom properties appear in the project editor panel and are also shown in the table view for bulk editing.
+
+**Note:** After modifying `config.json`:
+- **Locale changes**: Restart the application for date/number formats to update
+- **Custom property changes**: Use File → New to reload config (or restart the application)
+- **Working days changes**: Will take effect on next file open or when creating a new plan
 
 ### Sample Project
 
@@ -119,6 +186,7 @@ Open it via **File → Open** to explore all features.
 ## Features
 
 - **Visual Timeline Grid**: Users as columns, weekdays as rows (configurable working days)
+- **Locale Support**: Full internationalization with locale-specific date and number formats
 - **Project Lanes**: Multiple parallel projects per user with automatic lane assignment based on capacity
 - **Split Projects**: Divide projects across team members or time periods with synchronized properties
 - **Capacity Management**: Set project capacity (25%, 33%, 50%, 75%, 100%) to show partial availability
@@ -131,7 +199,7 @@ Open it via **File → Open** to explore all features.
 - **Z-Order Management**: Control visual stacking of overlapping projects
 - **Undo/Redo**: Full history support for all changes
 - **File Management**: Save, Save As, Open, and Recent Files support
-- **Custom Properties**: Define additional metadata fields for projects (configurable)
+- **Custom Properties**: Define additional metadata fields including enums, dates, and booleans
 - **Auto-Save**: Changes are automatically persisted to disk
 - **Dark Mode**: Toggle between light and dark themes (Ctrl+D)
 
