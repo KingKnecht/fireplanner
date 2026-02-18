@@ -52,6 +52,7 @@ const tableProjects = computed(() => {
         userId: p.userId,
         startDate: p.startDate,
         endDate: p.endDate,
+        deadline: p.deadline,
         durationDays: p.durationDays,
         bufferPercent: p.bufferPercent,
         capacityPercent: p.capacityPercent,
@@ -59,7 +60,7 @@ const tableProjects = computed(() => {
         timeSpent: p.timeSpent,
         color: p.color,
         zIndex: p.zIndex,
-        customProperties: p.customProperties,
+        customProperties: p.customProperties || {},
         parentProjectId: p.parentProjectId,
         originalDurationDays: p.originalDurationDays,
         overallDurationDays: p.overallDurationDays
@@ -81,11 +82,12 @@ const getUserName = (userId: string | null) => {
 }
 
 const formatDate = (date: Date) => {
-  return date.toLocaleDateString('en-US', { 
-    year: 'numeric', 
-    month: '2-digit', 
-    day: '2-digit' 
-  })
+  if (!date) return ''
+  const d = new Date(date)
+  const day = String(d.getDate()).padStart(2, '0')
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const year = d.getFullYear()
+  return `${day}.${month}.${year}`
 }
 
 const formatCustomProperty = (value: any, propDef: CustomPropertyDefinition) => {
@@ -175,6 +177,73 @@ const tableProjectsWithClass = computed(() => {
   })
 })
 
+const onCellEditComplete = (event: any) => {
+  const { data, newValue, field } = event
+  
+  console.log('[TableView] Cell edit complete:', { field, newValue, dataId: data.id })
+  
+  // Handle nested fields (custom properties)
+  if (field.startsWith('customProperties.')) {
+    const propName = field.replace('customProperties.', '')
+    const propDef = props.customPropertyDefinitions.find(p => p.name === propName)
+    
+    if (propDef) {
+      // For custom properties, get the actual value from the data object
+      // since we bind directly to it in the editor
+      const actualValue = data.customProperties?.[propName]
+      console.log('[TableView] Custom property edit:', { propName, actualValue, propType: propDef.type })
+      
+      const customProps = { ...data.customProperties }
+      
+      // The value is already set in data.customProperties from v-model
+      // Just ensure proper typing
+      if (propDef.type === 'number' || propDef.type === 'float' || propDef.type === 'enum') {
+        customProps[propName] = actualValue === '' || actualValue === null ? null : Number(actualValue)
+      } else if (propDef.type === 'boolean') {
+        customProps[propName] = actualValue === 'true' || actualValue === true || actualValue === 'Yes'
+      } else if (propDef.type === 'Date') {
+        customProps[propName] = actualValue ? new Date(actualValue) : null
+      } else {
+        customProps[propName] = actualValue
+      }
+      
+      console.log('[TableView] Updating custom props:', customProps)
+      store.updateProject(data.id, { customProperties: customProps })
+    }
+    return
+  }
+  
+  // Handle regular fields
+  const updates: any = {}
+  
+  switch (field) {
+    case 'name':
+      updates.name = newValue
+      break
+    case 'userId':
+      updates.userId = newValue === '' ? null : newValue
+      break
+    case 'startDate':
+    case 'deadline':
+      // Use newValue for date fields (native date input returns new value in event)
+      updates[field] = newValue instanceof Date ? newValue : (newValue ? new Date(newValue) : null)
+      break
+    case 'durationDays':
+    case 'bufferPercent':
+    case 'capacityPercent':
+    case 'estimatedProgress':
+    case 'timeSpent':
+      updates[field] = newValue === '' ? 0 : Number(newValue)
+      break
+    default:
+      updates[field] = newValue
+  }
+  
+  if (Object.keys(updates).length > 0) {
+    store.updateProject(data.id, updates)
+  }
+}
+
 </script>
 
 <template>
@@ -182,6 +251,8 @@ const tableProjectsWithClass = computed(() => {
     <DataTable 
       :value="tableProjectsWithClass" 
       @row-click="onRowClick"
+      @cell-edit-complete="onCellEditComplete"
+      editMode="cell"
       stripedRows
       sortMode="multiple"
       removableSort
@@ -191,15 +262,35 @@ const tableProjectsWithClass = computed(() => {
       class="project-table"
     >
       <!-- Fixed Columns -->
-      <Column field="name" header="Name" :sortable="true" style="min-width: 200px" />
+      <Column field="name" header="Name" :sortable="true" style="min-width: 200px">
+        <template #editor="{ data, field }">
+          <input v-model="data[field]" type="text" class="p-inputtext" />
+        </template>
+      </Column>
       <Column field="userId" header="User" :sortable="true" style="min-width: 150px">
         <template #body="slotProps">
           {{ getUserName(slotProps.data.userId) }}
+        </template>
+        <template #editor="{ data, field }">
+          <select v-model="data[field]" class="p-dropdown">
+            <option :value="null">Unassigned</option>
+            <option v-for="user in store.users" :key="user.id" :value="user.id">
+              {{ user.name }}
+            </option>
+          </select>
         </template>
       </Column>
       <Column field="startDate" header="Start Date" :sortable="true" style="min-width: 120px">
         <template #body="slotProps">
           {{ formatDate(slotProps.data.startDate) }}
+        </template>
+        <template #editor="{ data, field }">
+          <input 
+            type="date" 
+            :value="data[field] ? new Date(data[field]).toISOString().split('T')[0] : ''"
+            @input="(e) => data[field] = (e.target as HTMLInputElement).value ? new Date((e.target as HTMLInputElement).value) : null"
+            class="p-inputtext"
+          />
         </template>
       </Column>
       <Column field="endDate" header="End Date" :sortable="true" style="min-width: 120px">
@@ -207,15 +298,46 @@ const tableProjectsWithClass = computed(() => {
           {{ formatDate(slotProps.data.endDate) }}
         </template>
       </Column>
-      <Column field="durationDays" header="Duration (days)" :sortable="true" style="min-width: 130px" />
+      <Column field="deadline" header="Deadline" :sortable="true" style="min-width: 120px">
+        <template #body="slotProps">
+          {{ formatDate(slotProps.data.deadline) }}
+        </template>
+        <template #editor="{ data, field }">
+          <input 
+            type="date" 
+            :value="data[field] ? new Date(data[field]).toISOString().split('T')[0] : ''"
+            @input="(e) => data[field] = (e.target as HTMLInputElement).value ? new Date((e.target as HTMLInputElement).value) : null"
+            class="p-inputtext"
+          />
+        </template>
+      </Column>
+      <Column field="durationDays" header="Duration (days)" :sortable="true" style="min-width: 130px">
+        <template #editor="{ data, field }">
+          <input v-model.number="data[field]" type="number" step="0.5" min="0.5" class="p-inputtext" />
+        </template>
+      </Column>
       <Column field="bufferPercent" header="Buffer %" :sortable="true" style="min-width: 100px">
         <template #body="slotProps">
           {{ slotProps.data.bufferPercent }}%
+        </template>
+        <template #editor="{ data, field }">
+          <select v-model.number="data[field]" class="p-dropdown">
+            <option :value="0">0%</option>
+            <option :value="10">10%</option>
+            <option :value="25">25%</option>
+            <option :value="33">33%</option>
+            <option :value="50">50%</option>
+            <option :value="75">75%</option>
+            <option :value="100">100%</option>
+          </select>
         </template>
       </Column>
       <Column field="capacityPercent" header="Capacity %" :sortable="true" style="min-width: 110px">
         <template #body="slotProps">
           {{ slotProps.data.capacityPercent }}%
+        </template>
+        <template #editor="{ data, field }">
+          <input v-model.number="data[field]" type="number" min="1" max="100" class="p-inputtext" />
         </template>
       </Column>
       
@@ -279,6 +401,9 @@ const tableProjectsWithClass = computed(() => {
         <template #body="slotProps">
           {{ slotProps.data.estimatedProgress ?? 0 }}%
         </template>
+        <template #editor="{ data, field }">
+          <input v-model.number="data[field]" type="number" min="0" max="100" class="p-inputtext" />
+        </template>
       </Column>
       <Column field="timeSpent" header="Time Spent (days)" :sortable="true" style="min-width: 140px">
         <template #body="slotProps">
@@ -295,6 +420,9 @@ const tableProjectsWithClass = computed(() => {
           >
             ({{ getTimeSpentPercent(slotProps.data.timeSpent ?? 0, slotProps.data.durationDays) }}%)
           </span>
+        </template>
+        <template #editor="{ data, field }">
+          <input v-model.number="data[field]" type="number" step="0.5" min="0" class="p-inputtext" />
         </template>
       </Column>
       <Column field="color" header="Color" :sortable="true" style="min-width: 100px">
@@ -315,6 +443,63 @@ const tableProjectsWithClass = computed(() => {
         <template #body="slotProps">
           {{ formatCustomProperty(slotProps.data.customProperties?.[propDef.name], propDef) }}
         </template>
+        <template #editor="{ data }">
+          <!-- String editor -->
+          <input 
+            v-if="propDef.type === 'string'"
+            v-model="data.customProperties[propDef.name]"
+            type="text"
+            class="p-inputtext"
+          />
+          <!-- Number editor -->
+          <input 
+            v-else-if="propDef.type === 'number'"
+            v-model.number="data.customProperties[propDef.name]"
+            type="number"
+            step="1"
+            class="p-inputtext"
+          />
+          <!-- Float editor -->
+          <input 
+            v-else-if="propDef.type === 'float'"
+            v-model.number="data.customProperties[propDef.name]"
+            type="number"
+            step="any"
+            class="p-inputtext"
+          />
+          <!-- Boolean editor -->
+          <select 
+            v-else-if="propDef.type === 'boolean'"
+            v-model="data.customProperties[propDef.name]"
+            class="p-dropdown"
+          >
+            <option :value="true">Yes</option>
+            <option :value="false">No</option>
+          </select>
+          <!-- Enum editor -->
+          <select 
+            v-else-if="propDef.type === 'enum'"
+            v-model.number="data.customProperties[propDef.name]"
+            class="p-dropdown"
+          >
+            <option :value="null">Select {{ propDef.name }}</option>
+            <option 
+              v-for="(value, label) in propDef.values" 
+              :key="value" 
+              :value="value"
+            >
+              {{ label }}
+            </option>
+          </select>
+          <!-- Date editor -->
+          <input
+            v-else-if="propDef.type === 'Date'"
+            type="date"
+            :value="data.customProperties[propDef.name] ? new Date(data.customProperties[propDef.name]).toISOString().split('T')[0] : ''"
+            @input="(e) => data.customProperties[propDef.name] = (e.target as HTMLInputElement).value ? new Date((e.target as HTMLInputElement).value) : null"
+            class="p-inputtext"
+          />
+        </template>
       </Column>
     </DataTable>
   </div>
@@ -332,12 +517,47 @@ const tableProjectsWithClass = computed(() => {
   font-size: 14px;
 }
 
+/* Editor styling */
+:deep(.p-inputtext) {
+  width: 100%;
+  padding: 4px 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+:deep(.p-dropdown) {
+  width: 100%;
+  padding: 4px 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  font-size: 14px;
+  background: white;
+}
+
+:deep(.p-datepicker input) {
+  width: 100%;
+  padding: 4px 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
 :deep(.p-datatable-tbody > tr) {
   cursor: pointer;
 }
 
 :deep(.p-datatable-tbody > tr:hover) {
   background-color: rgba(99, 102, 241, 0.1) !important;
+}
+
+:deep(.p-datatable .p-datatable-tbody > tr > td.p-cell-editing) {
+  padding: 2px;
+  cursor: text;
+}
+
+:deep(.p-datatable .p-datatable-tbody > tr > td.p-cell-editing:hover) {
+  background-color: rgba(99, 102, 241, 0.05) !important;
 }
 
 .color-indicator {
@@ -529,6 +749,29 @@ const tableProjectsWithClass = computed(() => {
 
 .dark-mode .progress-bar-bg {
   background-color: #2a2a2a;
+}
+
+/* Dark mode editor styling */
+.dark-mode :deep(.p-inputtext) {
+  background-color: #2a2a2a;
+  border-color: #3d3d3d;
+  color: #e0e0e0;
+}
+
+.dark-mode :deep(.p-dropdown) {
+  background-color: #2a2a2a;
+  border-color: #3d3d3d;
+  color: #e0e0e0;
+}
+
+.dark-mode :deep(.p-datepicker input) {
+  background-color: #2a2a2a;
+  border-color: #3d3d3d;
+  color: #e0e0e0;
+}
+
+.dark-mode :deep(.p-datatable .p-datatable-tbody > tr > td.p-cell-editing) {
+  background-color: #2a2a2a !important;
 }
 
 </style>
