@@ -120,7 +120,7 @@
         <label>Start Date:</label>
         <DatePicker 
           v-model="form.startDate" 
-          dateFormat="dd.mm.yy"
+          :dateFormat="datePickerFormat"
           showIcon
           :showOnFocus="false"
         />
@@ -130,7 +130,7 @@
         <label>Deadline:</label>
         <DatePicker 
           v-model="form.deadline" 
-          dateFormat="dd.mm.yy"
+          :dateFormat="datePickerFormat"
           showIcon
           :showOnFocus="false"
         />
@@ -229,7 +229,7 @@
           <DatePicker
             v-else-if="propDef.type === 'Date'"
             v-model="(form.customProperties[propDef.name] as Date | null)"
-            dateFormat="dd.mm.yy"
+            :dateFormat="datePickerFormat"
             showIcon
             :showOnFocus="false"
             :class="{ 'invalid-field': isPropertyInvalid(propDef.name) }"
@@ -279,7 +279,7 @@ import { ref, watch, computed, nextTick } from 'vue'
 import DatePicker from 'primevue/datepicker'
 import type { User, Project, CustomPropertyDefinition } from '../types'
 import { COLOR_PALETTE, calculateProjectEndDate } from '../utils/projectUtils'
-import { formatDate, isWorkingDay } from '../utils/dateUtils'
+import { formatDate, isWorkingDay, getDatePickerFormat, currentLocale } from '../utils/dateUtils'
 import { usePlannerStore } from '../stores/plannerStore'
 
 const props = defineProps<{
@@ -289,6 +289,13 @@ const props = defineProps<{
   customPropertyDefinitions: CustomPropertyDefinition[]
   workingDays: number[]
 }>()
+
+// Reactively track locale changes
+const datePickerFormat = computed(() => {
+  // Access currentLocale.value to make this computed reactive to locale changes
+  currentLocale.value
+  return getDatePickerFormat()
+})
 
 const emit = defineEmits<{
   create: [data: {

@@ -23,7 +23,7 @@
           <label>Start Date:</label>
           <DatePicker 
             v-model="form.startDate" 
-            dateFormat="dd.mm.yy"
+            :dateFormat="datePickerFormat"
             showIcon
             :showOnFocus="false"
           />
@@ -33,7 +33,7 @@
           <label>End Date:</label>
           <DatePicker 
             v-model="form.endDate" 
-            dateFormat="dd.mm.yy"
+            :dateFormat="datePickerFormat"
             showIcon
             :showOnFocus="false"
           />
@@ -61,8 +61,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import DatePicker from 'primevue/datepicker'
+import { getDatePickerFormat, currentLocale } from '../utils/dateUtils'
 import type { User, Project } from '../types'
 
 const props = defineProps<{
@@ -82,6 +83,13 @@ const emit = defineEmits<{
   }]
   delete: []
 }>()
+
+// Reactively track locale changes
+const datePickerFormat = computed(() => {
+  // Access currentLocale.value to make this computed reactive to locale changes
+  currentLocale.value
+  return getDatePickerFormat()
+})
 
 const form = ref({
   name: '',

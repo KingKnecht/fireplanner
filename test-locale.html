@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Locale Test</title>
+</head>
+<body>
+    <h2>Date Formatting Test</h2>
+    <div id="output"></div>
+    <script>
+        const testDate = new Date(2026, 1, 18); // Feb 18, 2026
+        
+        const deDE = new Intl.DateTimeFormat('de-DE', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        }).format(testDate);
+        
+        const enUS = new Intl.DateTimeFormat('en-US', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        }).format(testDate);
+        
+        document.getElementById('output').innerHTML = `
+            <p><strong>de-DE:</strong> ${deDE}</p>
+            <p><strong>en-US:</strong> ${enUS}</p>
+        `;
+    </script>
+</body>
+</html>

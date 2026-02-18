@@ -7,6 +7,7 @@ import ProjectTableView from './components/ProjectTableView.vue'
 import ProjectEditorPanel from './components/ProjectEditorPanel.vue'
 import UserDialog from './components/UserDialog.vue'
 import { usePlannerStore } from './stores/plannerStore'
+import { setLocale } from './utils/dateUtils'
 import type { Project, CustomPropertyDefinition } from './types'
 import type { AppConfig } from './electron'
 
@@ -127,6 +128,12 @@ onMounted(async () => {
     const config = await window.electron.getConfig()
     autosaveConfig.value = config.autosave
     customPropertyDefinitions.value = config.customProperties || []
+    
+    // Set locale from config
+    if (config.locale) {
+      setLocale(config.locale)
+      console.log('[Locale] Set to:', config.locale)
+    }
     
     // Set working days from config
     if (config.workingDays) {
@@ -299,6 +306,12 @@ function handleNew() {
       window.electron.reloadConfig().then(result => {
         if (result.success && result.config) {
           customPropertyDefinitions.value = result.config.customProperties || []
+          
+          // Update locale if specified in config
+          if (result.config.locale) {
+            setLocale(result.config.locale)
+            console.log('[Locale] Reloaded, set to:', result.config.locale)
+          }
           
           // Reset working days to config default
           if (result.config.workingDays) {
@@ -871,6 +884,7 @@ function handleSplitProject(project: Project) {
       />
 
       <ProjectEditorPanel
+        v-if="!isTableView"
         :users="store.users"
         :selected-project="selectedProject"
         :new-project-data="newProjectData"

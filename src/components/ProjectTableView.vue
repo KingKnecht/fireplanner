@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import { usePlannerStore } from '../stores/plannerStore'
+import { formatDate } from '../utils/dateUtils'
 import type { Project, CustomPropertyDefinition } from '../types'
 
 const props = defineProps<{
@@ -79,15 +80,6 @@ const getUserName = (userId: string | null) => {
   if (!userId) return 'Unassigned'
   const user = store.users.find(u => u.id === userId)
   return user?.name || 'Unknown'
-}
-
-const formatDate = (date: Date) => {
-  if (!date) return ''
-  const d = new Date(date)
-  const day = String(d.getDate()).padStart(2, '0')
-  const month = String(d.getMonth() + 1).padStart(2, '0')
-  const year = d.getFullYear()
-  return `${day}.${month}.${year}`
 }
 
 const formatCustomProperty = (value: any, propDef: CustomPropertyDefinition) => {
@@ -538,6 +530,12 @@ const onCellEditComplete = (event: any) => {
   border-radius: 4px;
   font-size: 14px;
   background: white;
+  color: #000;
+}
+
+:deep(.p-dropdown option) {
+  background: white;
+  color: #000;
 }
 
 :deep(.p-datepicker input) {
@@ -766,6 +764,11 @@ const onCellEditComplete = (event: any) => {
 .dark-mode :deep(.p-dropdown) {
   background-color: #2a2a2a;
   border-color: #3d3d3d;
+  color: #e0e0e0;
+}
+
+.dark-mode :deep(.p-dropdown option) {
+  background-color: #2a2a2a;
   color: #e0e0e0;
 }
 
