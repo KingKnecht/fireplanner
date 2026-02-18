@@ -5,7 +5,6 @@ A visual project planning desktop application that helps teams organize and trac
 FirePlanner displays projects as colored blocks in a grid where each column represents a team member and each row represents a weekday. This makes it easy to see who's working on what and when projects overlap.
 
 ![FirePlanner Grid View Screenshot](./screenshots/window-main.png)
-![FirePlanner Table View Screenshot](./screenshots/table_view.png)
 
 ## Quick Start
 
@@ -257,6 +256,32 @@ npm run test:coverage
 - **Copy/Cut/Paste**: Use Ctrl+C, Ctrl+X, Ctrl+V to duplicate projects
 - **Split Project**: Click the ⚡ button on a project to divide it across users or time periods
 - **z-Order**: Use "Send to Back" / "Bring to Front" buttons to control overlapping project stacking
+
+### Table View
+FirePlanner includes a powerful table view for bulk editing and data analysis. Toggle between grid and table views using the **"Toggle View"** button in the header.
+
+![FirePlanner Table View Screenshot](./screenshots/table_view.png)
+
+**Table View Features:**
+- **Inline Editing**: Click any cell to edit project properties directly in the table
+- **Sortable Columns**: Click column headers to sort by any field (name, user, dates, duration, etc.)
+- **Multi-Column Sort**: Hold Shift and click multiple headers for complex sorting
+- **Resizable Columns**: Drag column borders to adjust widths
+- **Custom Properties**: All configured custom properties appear as editable columns
+- **Visual Status Indicators**: Row colors indicate project health:
+  - **Red**: Critical (time spent exceeds duration or far behind schedule)
+  - **Orange**: Warning (behind schedule)
+  - **Green**: Ahead of schedule
+- **Progress Visualization**: Bar charts show duration, time spent, and estimated progress
+- **Quick Navigation**: Click any row to select and view that project in the editor panel
+- **Horizontal Scrolling**: Automatically appears when you have many custom properties
+
+The table view is especially useful for:
+- Reviewing project timelines at a glance
+- Bulk editing dates, durations, and properties across multiple projects
+- Identifying overdue or at-risk projects quickly
+- Analyzing project metrics and progress tracking
+- Exporting data for reports (via selection and copy)
 
 ### Project Properties
 - **Duration**: Set project duration in working days (supports 0.5 increments)
