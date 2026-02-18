@@ -9,11 +9,6 @@
     {
       "name": "OrderNumber",
       "type": "string",
-      "required": true
-    },
-    {
-      "name": "Deadline",
-      "type": "Date",
       "required": false
     },
     {
@@ -29,6 +24,22 @@
     {
       "name": "IsUrgent",
       "type": "boolean",
+      "required": false
+    },
+    {
+      "name": "Mode",
+      "type": "enum",
+      "values": {"Times & Material": 1, "Fixed Price": 2},
+      "required": false
+    },
+        {
+      "name": "Another mode",
+      "type": "enum",
+      "values": {
+        "Mode 1": 1,
+        "Mode 2": 2,
+        "Mode 3": 3
+      },
       "required": false
     }
   ]

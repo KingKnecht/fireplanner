@@ -63,8 +63,9 @@ The bundled `config.json` in the project root serves as the default configuratio
 Define additional metadata fields for your projects. Each property definition has:
 
 - **`name`** (string): Display name of the property
-- **`type`** (string): Data type - `"string"`, `"number"`, `"float"`, `"boolean"`, or `"Date"`
+- **`type`** (string): Data type - `"string"`, `"number"`, `"float"`, `"boolean"`, `"Date"`, or `"enum"`
 - **`required`** (boolean): Whether the field must be filled when creating projects
+- **`values`** (object, for enum type only): Maps display names to numeric values
 
 **Example:**
 ```json
@@ -88,6 +89,12 @@ Define additional metadata fields for your projects. Each property definition ha
     {
       "name": "IsUrgent",
       "type": "boolean",
+      "required": false
+    },
+    {
+      "name": "Mode",
+      "type": "enum",
+      "values": {"Time&Material": 1, "Fixed Price": 2},
       "required": false
     }
   ]

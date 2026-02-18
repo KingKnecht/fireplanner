@@ -187,6 +187,22 @@
             :class="{ 'invalid-field': isPropertyInvalid(propDef.name) }"
           />
           
+          <!-- Enum input -->
+          <select
+            v-else-if="propDef.type === 'enum'"
+            v-model.number="form.customProperties[propDef.name]"
+            :class="{ 'invalid-field': isPropertyInvalid(propDef.name) }"
+          >
+            <option :value="null">Select {{ propDef.name }}</option>
+            <option 
+              v-for="(value, label) in propDef.values" 
+              :key="value" 
+              :value="value"
+            >
+              {{ label }}
+            </option>
+          </select>
+          
           <!-- Boolean input -->
           <div v-else-if="propDef.type === 'boolean'" class="boolean-input">
             <input
@@ -312,6 +328,7 @@ function initializeCustomProperties(): Record<string, string | number | boolean 
         break
       case 'number':
       case 'float':
+      case 'enum':
         customProps[propDef.name] = null
         break
       case 'boolean':

@@ -4,12 +4,13 @@ export interface User {
   color?: string
 }
 
-export type CustomPropertyType = 'string' | 'number' | 'float' | 'boolean' | 'Date'
+export type CustomPropertyType = 'string' | 'number' | 'float' | 'boolean' | 'Date' | 'enum'
 
 export interface CustomPropertyDefinition {
   name: string
   type: CustomPropertyType
   required: boolean
+  values?: Record<string, number>  // For enum type: maps display names to numeric values
 }
 
 export interface Project {
