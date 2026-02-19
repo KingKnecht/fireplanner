@@ -37,36 +37,73 @@ const getProjectHotness = (timeSpent: number, duration: number, estimatedProgres
   return behindBy
 }
 
-// Filter out split projects - only show parent/non-split projects  
+// Filter out child split projects - only show parent/non-split projects  
+// For split projects, aggregate data from all splits
 // Force reactivity by creating new object references
 const tableProjects = computed(() => {
   // Access store.projects to establish reactivity
   const allProjects = store.projects
   
-  const projects = allProjects
-    .filter(p => !p.parentProjectId)
-    .map(p => {
-      // Create new object reference to ensure DataTable detects changes
-      return {
-        id: p.id,
-        name: p.name,
-        userId: p.userId,
-        startDate: p.startDate,
-        endDate: p.endDate,
-        deadline: p.deadline,
-        durationDays: p.durationDays,
-        bufferPercent: p.bufferPercent,
-        capacityPercent: p.capacityPercent,
-        estimatedProgress: p.estimatedProgress,
-        timeSpent: p.timeSpent,
-        color: p.color,
-        zIndex: p.zIndex,
-        customProperties: p.customProperties || {},
-        parentProjectId: p.parentProjectId,
-        originalDurationDays: p.originalDurationDays,
-        overallDurationDays: p.overallDurationDays
+  // Filter to show only parent projects or non-split projects
+  // Parent project: p.id === p.parentProjectId
+  // Non-split project: !p.parentProjectId
+  const parentProjects = allProjects.filter(p => !p.parentProjectId || p.id === p.parentProjectId)
+  
+  const projects = parentProjects.map(p => {
+    // If this is a split project, aggregate data from all splits
+    let aggregatedData = p
+    
+    if (p.parentProjectId && p.id === p.parentProjectId) {
+      // This is a parent of split projects - aggregate all splits
+      const allSplits = store.getSplitProjects(p.id)
+      
+      // Calculate aggregated values
+      const totalDuration = allSplits.reduce((sum, split) => sum + split.durationDays, 0)
+      const totalTimeSpent = allSplits.reduce((sum, split) => sum + (split.timeSpent || 0), 0)
+      
+      // Calculate weighted average of estimated progress (weighted by duration)
+      const weightedProgress = allSplits.reduce((sum, split) => {
+        return sum + (split.estimatedProgress || 0) * split.durationDays
+      }, 0)
+      const avgProgress = totalDuration > 0 ? weightedProgress / totalDuration : 0
+      
+      // Find earliest start date and latest end date
+      const startDates = allSplits.map(s => s.startDate)
+      const endDates = allSplits.map(s => s.endDate)
+      const earliestStart = new Date(Math.min(...startDates.map(d => d.getTime())))
+      const latestEnd = new Date(Math.max(...endDates.map(d => d.getTime())))
+      
+      aggregatedData = {
+        ...p,
+        durationDays: totalDuration,
+        timeSpent: totalTimeSpent,
+        estimatedProgress: Math.round(avgProgress),
+        startDate: earliestStart,
+        endDate: latestEnd
       }
-    })
+    }
+    
+    // Create new object reference to ensure DataTable detects changes
+    return {
+      id: aggregatedData.id,
+      name: aggregatedData.name,
+      userId: aggregatedData.userId,
+      startDate: aggregatedData.startDate,
+      endDate: aggregatedData.endDate,
+      deadline: aggregatedData.deadline,
+      durationDays: aggregatedData.durationDays,
+      bufferPercent: aggregatedData.bufferPercent,
+      capacityPercent: aggregatedData.capacityPercent,
+      estimatedProgress: aggregatedData.estimatedProgress,
+      timeSpent: aggregatedData.timeSpent,
+      color: aggregatedData.color,
+      zIndex: aggregatedData.zIndex,
+      customProperties: aggregatedData.customProperties || {},
+      parentProjectId: aggregatedData.parentProjectId,
+      originalDurationDays: aggregatedData.originalDurationDays,
+      overallDurationDays: aggregatedData.overallDurationDays
+    }
+  })
   
   // Sort by hotness - hot projects first
   return projects.sort((a, b) => {
@@ -174,6 +211,9 @@ const onCellEditComplete = (event: any) => {
   
   console.log('[TableView] Cell edit complete:', { field, newValue, dataId: data.id })
   
+  // Check if this is a split project parent
+  const isSplitParent = data.parentProjectId && data.id === data.parentProjectId
+  
   // Handle nested fields (custom properties)
   if (field.startsWith('customProperties.')) {
     const propName = field.replace('customProperties.', '')
@@ -213,6 +253,14 @@ const onCellEditComplete = (event: any) => {
       updates.name = newValue
       break
     case 'userId':
+      // For split projects, update all splits
+      if (isSplitParent) {
+        const allSplits = store.getSplitProjects(data.id)
+        allSplits.forEach(split => {
+          store.updateProject(split.id, { userId: newValue === '' ? null : newValue })
+        })
+        return
+      }
       updates.userId = newValue === '' ? null : newValue
       break
     case 'startDate':
@@ -221,10 +269,62 @@ const onCellEditComplete = (event: any) => {
       updates[field] = newValue instanceof Date ? newValue : (newValue ? new Date(newValue) : null)
       break
     case 'durationDays':
+      if (isSplitParent) {
+        // For split projects, distribute duration change proportionally
+        const allSplits = store.getSplitProjects(data.id)
+        const currentTotal = allSplits.reduce((sum, s) => sum + s.durationDays, 0)
+        const newTotal = newValue === '' ? 0 : Number(newValue)
+        const ratio = currentTotal > 0 ? newTotal / currentTotal : 1
+        
+        allSplits.forEach(split => {
+          const newDuration = Math.max(0.5, split.durationDays * ratio)
+          store.updateProject(split.id, { durationDays: newDuration })
+        })
+        return
+      }
+      updates[field] = newValue === '' ? 0 : Number(newValue)
+      break
+    case 'timeSpent':
+      if (isSplitParent) {
+        // For split projects, distribute time spent change proportionally
+        const allSplits = store.getSplitProjects(data.id)
+        const currentTotal = allSplits.reduce((sum, s) => sum + (s.timeSpent || 0), 0)
+        const newTotal = newValue === '' ? 0 : Number(newValue)
+        const ratio = currentTotal > 0 ? newTotal / currentTotal : 1
+        
+        allSplits.forEach(split => {
+          const newTimeSpent = Math.max(0, (split.timeSpent || 0) * ratio)
+          store.updateProject(split.id, { timeSpent: newTimeSpent })
+        })
+        return
+      }
+      updates[field] = newValue === '' ? 0 : Number(newValue)
+      break
+    case 'estimatedProgress':
+      if (isSplitParent) {
+        // For split projects, set the same progress for all splits
+        const allSplits = store.getSplitProjects(data.id)
+        const newProgress = newValue === '' ? 0 : Number(newValue)
+        
+        allSplits.forEach(split => {
+          store.updateProject(split.id, { estimatedProgress: newProgress })
+        })
+        return
+      }
+      updates[field] = newValue === '' ? 0 : Number(newValue)
+      break
     case 'bufferPercent':
     case 'capacityPercent':
-    case 'estimatedProgress':
-    case 'timeSpent':
+      // For split projects, update all splits with the same value
+      if (isSplitParent) {
+        const allSplits = store.getSplitProjects(data.id)
+        const newVal = newValue === '' ? 0 : Number(newValue)
+        
+        allSplits.forEach(split => {
+          store.updateProject(split.id, { [field]: newVal })
+        })
+        return
+      }
       updates[field] = newValue === '' ? 0 : Number(newValue)
       break
     default:
